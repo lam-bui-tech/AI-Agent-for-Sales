@@ -77,7 +77,7 @@ def create_lead(
         "product_skus": product_skus or [],
         "needs_summary": needs_summary,
         "status": "new",
-        "message": f"Đã ghi nhận thông tin thành công (Mã Lead: #{lead_id}). Chuyên viên tư vấn DemoTech sẽ liên hệ hỗ trợ bạn sớm nhất."
+        "message": f"Đã ghi nhận thông tin thành công (Mã Lead: #{lead_id}). Chuyên viên tư vấn DemoTech sẽ liên hệ hỗ trợ bạn sớm nhất ạ."
     }
     
     # Gửi thông báo tức thì về Telegram Sales nếu có cấu hình

@@ -69,19 +69,28 @@ def handoff_to_human(
         "priority": clean_priority,
         "summary": summary,
         "suggested_next_action": suggested_next_action,
-        "message": f"Mình đã chuyển ca cho bộ phận tư vấn chuyên môn (Mã vé: {ticket_id}). Chuyên viên sẽ tiếp nhận và hỗ trợ bạn ngay nhé!"
+        "message": f"Yêu cầu đã được chuyển lên quản lý duyệt (Mã: {ticket_id}). Chuyên viên bên mình sẽ liên hệ hỗ trợ bạn sớm nhất ạ."
     }
 
     # Gửi thông báo tức thì về Telegram Sales nếu có cấu hình
     try:
-        alert_msg = (
-            f"🚨 <b>YÊU CẦU CHUYỂN NHÂN VIÊN ({clean_priority.upper()})</b>\n"
-            f"🎫 <b>Mã vé:</b> <code>{ticket_id}</code>\n"
-            f"📌 <b>Lý do:</b> {VALID_HANDOFF_REASONS.get(clean_reason, clean_reason)}\n"
-            f"💬 <b>Hội thoại:</b> {conversation_id}\n"
-            f"📋 <b>Tóm tắt:</b> {summary}\n"
-            f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Chăm sóc khách hàng'}"
-        )
+        if clean_reason == "discount_request":
+            alert_msg = (
+                f"🏷️ <b>YÊU CẦU DEAL GIÁ (CHỜ DUYỆT - PENDING)</b>\n"
+                f"🎫 <b>Mã yêu cầu:</b> <code>{ticket_id}</code>\n"
+                f"💬 <b>Hội thoại:</b> {conversation_id}\n"
+                f"📋 <b>Chi tiết yêu cầu & Liên hệ:</b>\n{summary}\n"
+                f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Quản lý xem xét duyệt giá và liên hệ lại'}"
+            )
+        else:
+            alert_msg = (
+                f"🚨 <b>YÊU CẦU CHUYỂN NHÂN VIÊN ({clean_priority.upper()})</b>\n"
+                f"🎫 <b>Mã vé:</b> <code>{ticket_id}</code>\n"
+                f"📌 <b>Lý do:</b> {VALID_HANDOFF_REASONS.get(clean_reason, clean_reason)}\n"
+                f"💬 <b>Hội thoại:</b> {conversation_id}\n"
+                f"📋 <b>Tóm tắt:</b> {summary}\n"
+                f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Chăm sóc khách hàng'}"
+            )
         send_telegram_alert(alert_msg)
     except Exception as e:
         print(f"Error dispatching handoff alert: {e}")
