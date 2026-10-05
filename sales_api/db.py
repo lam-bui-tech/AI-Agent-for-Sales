@@ -27,6 +27,7 @@ def init_db():
         product_skus TEXT,
         budget_vnd INTEGER,
         needs_summary TEXT,
+        preferred_contact_method TEXT,
         consent_to_contact BOOLEAN NOT NULL DEFAULT 1,
         status TEXT NOT NULL DEFAULT 'new',
         created_at TEXT NOT NULL
@@ -43,6 +44,7 @@ def init_db():
         priority TEXT NOT NULL DEFAULT 'medium',
         summary TEXT NOT NULL,
         suggested_next_action TEXT,
+        preferred_contact_method TEXT,
         status TEXT NOT NULL DEFAULT 'open',
         created_at TEXT NOT NULL
     );
@@ -60,6 +62,17 @@ def init_db():
         created_at TEXT NOT NULL
     );
     """)
+
+    # Migrations for existing tables
+    try:
+        cursor.execute("ALTER TABLE leads ADD COLUMN preferred_contact_method TEXT")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE handoff_tickets ADD COLUMN preferred_contact_method TEXT")
+    except Exception:
+        pass
     
     conn.commit()
     conn.close()

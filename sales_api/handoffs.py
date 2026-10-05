@@ -25,7 +25,9 @@ def handoff_to_human(
     reason: str,
     summary: str,
     priority: str = "medium",
-    suggested_next_action: Optional[str] = None
+    suggested_next_action: Optional[str] = None,
+    preferred_contact_method: Optional[str] = None,
+    status: str = "open"
 ) -> Dict[str, Any]:
     """
     Chuyển giao phiên tư vấn sang nhân viên kinh doanh / quản lý kèm tóm tắt ngữ cảnh.
@@ -45,8 +47,8 @@ def handoff_to_human(
     cursor = conn.cursor()
     cursor.execute("""
     INSERT INTO handoff_tickets (
-        ticket_id, conversation_id, reason, priority, summary, suggested_next_action, status, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ticket_id, conversation_id, reason, priority, summary, suggested_next_action, preferred_contact_method, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         ticket_id,
         conversation_id,
@@ -54,7 +56,8 @@ def handoff_to_human(
         clean_priority,
         summary,
         suggested_next_action or "Nhân viên liên hệ và xử lý yêu cầu",
-        "open",
+        preferred_contact_method,
+        status or "open",
         now_iso
     ))
     conn.commit()
@@ -63,22 +66,25 @@ def handoff_to_human(
     result = {
         "success": True,
         "ticket_id": ticket_id,
-        "status": "handoff_created",
+        "status": status if status != "open" else "handoff_created",
+        "ticket_status": status or "open",
         "reason": clean_reason,
         "reason_description": VALID_HANDOFF_REASONS.get(clean_reason, ""),
         "priority": clean_priority,
         "summary": summary,
         "suggested_next_action": suggested_next_action,
+        "preferred_contact_method": preferred_contact_method,
         "message": f"Yêu cầu đã được chuyển lên quản lý duyệt (Mã: {ticket_id}). Chuyên viên bên mình sẽ liên hệ hỗ trợ bạn sớm nhất ạ."
     }
 
     # Gửi thông báo tức thì về Telegram Sales nếu có cấu hình
     try:
-        if clean_reason == "discount_request":
+        if clean_reason == "discount_request" or status == "discount_pending":
             alert_msg = (
                 f"🏷️ <b>YÊU CẦU DEAL GIÁ (CHỜ DUYỆT - PENDING)</b>\n"
                 f"🎫 <b>Mã yêu cầu:</b> <code>{ticket_id}</code>\n"
                 f"💬 <b>Hội thoại:</b> {conversation_id}\n"
+                f"📲 <b>Kênh liên hệ mong muốn:</b> {preferred_contact_method or 'Chưa rõ'}\n"
                 f"📋 <b>Chi tiết yêu cầu & Liên hệ:</b>\n{summary}\n"
                 f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Quản lý xem xét duyệt giá và liên hệ lại'}"
             )
@@ -88,6 +94,7 @@ def handoff_to_human(
                 f"🎫 <b>Mã vé:</b> <code>{ticket_id}</code>\n"
                 f"📌 <b>Lý do:</b> {VALID_HANDOFF_REASONS.get(clean_reason, clean_reason)}\n"
                 f"💬 <b>Hội thoại:</b> {conversation_id}\n"
+                f"📲 <b>Kênh liên hệ mong muốn:</b> {preferred_contact_method or 'Chưa rõ'}\n"
                 f"📋 <b>Tóm tắt:</b> {summary}\n"
                 f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Chăm sóc khách hàng'}"
             )
@@ -98,7 +105,9 @@ def handoff_to_human(
     log_audit("handoff_to_human", {
         "conversation_id": conversation_id,
         "reason": clean_reason,
-        "priority": clean_priority
+        "priority": clean_priority,
+        "status": status,
+        "preferred_contact_method": preferred_contact_method
     }, result, success=True)
 
     return result

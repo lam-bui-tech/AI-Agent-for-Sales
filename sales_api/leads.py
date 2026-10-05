@@ -23,7 +23,9 @@ def create_lead(
     channel_user_id: Optional[str] = None,
     product_skus: Optional[List[str]] = None,
     budget_vnd: Optional[int] = None,
-    needs_summary: Optional[str] = None
+    needs_summary: Optional[str] = None,
+    preferred_contact_method: Optional[str] = None,
+    status: str = "new"
 ) -> Dict[str, Any]:
     """
     Lưu thông tin khách hàng tiềm năng (Lead) sau khi có sự đồng ý (Consent) rõ ràng.
@@ -51,8 +53,8 @@ def create_lead(
     cursor = conn.cursor()
     cursor.execute("""
     INSERT INTO leads (
-        channel, channel_user_id, name, phone, product_skus, budget_vnd, needs_summary, consent_to_contact, status, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        channel, channel_user_id, name, phone, product_skus, budget_vnd, needs_summary, preferred_contact_method, consent_to_contact, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         channel,
         channel_user_id or "unknown",
@@ -61,8 +63,9 @@ def create_lead(
         skus_json,
         budget_vnd,
         needs_summary or "",
+        preferred_contact_method,
         1 if consent_to_contact else 0,
-        "new",
+        status or "new",
         now_iso
     ))
     lead_id = cursor.lastrowid
@@ -76,21 +79,35 @@ def create_lead(
         "phone": phone,
         "product_skus": product_skus or [],
         "needs_summary": needs_summary,
-        "status": "new",
+        "preferred_contact_method": preferred_contact_method,
+        "status": status or "new",
         "message": f"Đã ghi nhận thông tin thành công (Mã Lead: #{lead_id}). Chuyên viên tư vấn DemoTech sẽ liên hệ hỗ trợ bạn sớm nhất ạ."
     }
     
     # Gửi thông báo tức thì về Telegram Sales nếu có cấu hình
     try:
-        alert_msg = (
-            f"🔥 <b>CÓ LEAD MỚI TỪ BOT!</b>\n"
-            f"👤 <b>Khách hàng:</b> {name or 'Khách hàng'}\n"
-            f"📞 <b>Số điện thoại:</b> <code>{phone}</code>\n"
-            f"💻 <b>Quan tâm:</b> {', '.join(product_skus or []) if product_skus else 'Chưa chọn máy cụ thể'}\n"
-            f"💰 <b>Ngân sách:</b> {f'{budget_vnd:,}đ' if budget_vnd else 'Chưa rõ'}\n"
-            f"📝 <b>Nhu cầu:</b> {needs_summary or 'Cần tư vấn'}\n"
-            f"📱 <b>Kênh:</b> {channel}"
-        )
+        if status == "discount_pending":
+            alert_msg = (
+                f"🏷️ <b>CÓ LEAD DEAL GIÁ (CHỜ DUYỆT - PENDING)!</b>\n"
+                f"👤 <b>Khách hàng:</b> {name or 'Khách hàng'}\n"
+                f"📞 <b>Số điện thoại:</b> <code>{phone}</code>\n"
+                f"📲 <b>Kênh liên hệ mong muốn:</b> {preferred_contact_method or 'Gọi trực tiếp'}\n"
+                f"💻 <b>Quan tâm:</b> {', '.join(product_skus or []) if product_skus else 'Chưa chọn máy cụ thể'}\n"
+                f"💰 <b>Ngân sách / Deal:</b> {f'{budget_vnd:,}đ' if budget_vnd else 'Theo trao đổi'}\n"
+                f"📝 <b>Chi tiết yêu cầu:</b> {needs_summary or 'Xin giá ưu đãi'}\n"
+                f"📱 <b>Nguồn:</b> {channel}"
+            )
+        else:
+            alert_msg = (
+                f"🔥 <b>CÓ LEAD MỚI TỪ BOT!</b>\n"
+                f"👤 <b>Khách hàng:</b> {name or 'Khách hàng'}\n"
+                f"📞 <b>Số điện thoại:</b> <code>{phone}</code>\n"
+                f"📲 <b>Kênh liên hệ mong muốn:</b> {preferred_contact_method or 'Gọi trực tiếp'}\n"
+                f"💻 <b>Quan tâm:</b> {', '.join(product_skus or []) if product_skus else 'Chưa chọn máy cụ thể'}\n"
+                f"💰 <b>Ngân sách:</b> {f'{budget_vnd:,}đ' if budget_vnd else 'Chưa rõ'}\n"
+                f"📝 <b>Nhu cầu:</b> {needs_summary or 'Cần tư vấn'}\n"
+                f"📱 <b>Kênh:</b> {channel}"
+            )
         send_telegram_alert(alert_msg)
     except Exception as e:
         print(f"Error dispatching alert: {e}")
@@ -99,7 +116,9 @@ def create_lead(
         "channel": channel,
         "phone": phone,
         "consent": consent_to_contact,
-        "skus": product_skus
+        "skus": product_skus,
+        "status": status,
+        "preferred_contact_method": preferred_contact_method
     }, result, success=True)
     
     return result

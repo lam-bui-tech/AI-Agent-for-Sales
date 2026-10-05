@@ -52,6 +52,8 @@ class CreateLeadRequest(BaseModel):
     product_skus: Optional[List[str]] = Field(None, description="Danh sách SKU khách đang quan tâm")
     budget_vnd: Optional[int] = Field(None, description="Ngân sách khách dự kiến")
     needs_summary: Optional[str] = Field(None, description="Tóm tắt ngắn gọn nhu cầu sử dụng của khách")
+    preferred_contact_method: Optional[str] = Field(None, description="Kênh liên hệ khách mong muốn (Zalo, Telegram, Gọi trực tiếp)")
+    status: str = Field("new", description="Trạng thái lead: 'new' hoặc 'discount_pending'")
 
 class HandoffRequest(BaseModel):
     conversation_id: str = Field(..., description="ID phiên hội thoại")
@@ -59,6 +61,8 @@ class HandoffRequest(BaseModel):
     summary: str = Field(..., description="Tóm tắt ngắn gọn lý do và bối cảnh chuyển ca")
     priority: str = Field("medium", description="Mức độ ưu tiên: low, medium, high, urgent")
     suggested_next_action: Optional[str] = Field(None, description="Gợi ý hành động tiếp theo cho sales")
+    preferred_contact_method: Optional[str] = Field(None, description="Kênh liên hệ khách mong muốn (Zalo, Telegram, Gọi trực tiếp)")
+    status: str = Field("open", description="Trạng thái ticket: 'open' hoặc 'discount_pending'")
 
 class PolicyRequest(BaseModel):
     topic: str = Field(..., description="Chủ đề chính sách cần tra cứu (bảo hành, đổi trả, vận chuyển, vat, trả góp)")
@@ -145,7 +149,9 @@ def tool_create_lead(req: CreateLeadRequest):
         channel_user_id=req.channel_user_id,
         product_skus=req.product_skus,
         budget_vnd=req.budget_vnd,
-        needs_summary=req.needs_summary
+        needs_summary=req.needs_summary,
+        preferred_contact_method=req.preferred_contact_method,
+        status=req.status
     )
     duration = (time.time() - start) * 1000
     log_audit("create_lead", req.dict(), result, duration_ms=duration, success=result.get("success", False))
@@ -162,7 +168,9 @@ def tool_handoff(req: HandoffRequest):
         reason=req.reason,
         summary=req.summary,
         priority=req.priority,
-        suggested_next_action=req.suggested_next_action
+        suggested_next_action=req.suggested_next_action,
+        preferred_contact_method=req.preferred_contact_method,
+        status=req.status
     )
     duration = (time.time() - start) * 1000
     log_audit("handoff_to_human", req.dict(), result, duration_ms=duration, success=True)

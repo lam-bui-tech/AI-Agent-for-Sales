@@ -114,6 +114,14 @@ TOOLS_DEFINITIONS = [
                 "needs_summary": {
                     "type": "string",
                     "description": "Tóm tắt nhu cầu chính của khách (ví dụ: 'cần máy RAM 32GB chạy Docker')"
+                },
+                "preferred_contact_method": {
+                    "type": "string",
+                    "description": "Kênh liên hệ khách mong muốn: 'Zalo', 'Telegram', hoặc 'Gọi trực tiếp'"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Trạng thái lead: 'new' hoặc 'discount_pending' (chờ duyệt giá deal)"
                 }
             },
             "required": ["channel", "phone", "consent_to_contact"]
@@ -144,6 +152,14 @@ TOOLS_DEFINITIONS = [
                 "suggested_next_action": {
                     "type": "string",
                     "description": "Gợi ý hành động tiếp theo cho sales"
+                },
+                "preferred_contact_method": {
+                    "type": "string",
+                    "description": "Kênh liên hệ khách mong muốn: 'Zalo', 'Telegram', hoặc 'Gọi trực tiếp'"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Trạng thái ticket: 'open' hoặc 'discount_pending'"
                 }
             },
             "required": ["conversation_id", "reason", "summary"]
@@ -215,7 +231,9 @@ def handle_tool_call(name: str, args: Dict[str, Any]) -> Any:
             name=args.get("name"),
             product_skus=args.get("product_skus"),
             budget_vnd=args.get("budget_vnd"),
-            needs_summary=args.get("needs_summary")
+            needs_summary=args.get("needs_summary"),
+            preferred_contact_method=args.get("preferred_contact_method"),
+            status=args.get("status", "new")
         )
     elif name == "handoff_to_human":
         return handoff_to_human(
@@ -223,7 +241,9 @@ def handle_tool_call(name: str, args: Dict[str, Any]) -> Any:
             reason=args.get("reason", "customer_requests_human"),
             summary=args.get("summary", ""),
             priority=args.get("priority", "medium"),
-            suggested_next_action=args.get("suggested_next_action")
+            suggested_next_action=args.get("suggested_next_action"),
+            preferred_contact_method=args.get("preferred_contact_method"),
+            status=args.get("status", "open")
         )
     elif name == "get_policy_answer":
         return get_policy_answer(topic=args.get("topic", ""))

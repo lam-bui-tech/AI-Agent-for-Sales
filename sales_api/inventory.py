@@ -39,6 +39,7 @@ def check_inventory(sku: str) -> Dict[str, Any]:
         "found": True,
         "available": item.get("available", False) and item.get("quantity", 0) > 0,
         "quantity": item.get("quantity", 0),
+        "warehouse": item.get("warehouse_location", "Kho trung tâm"),
         "warehouse_location": item.get("warehouse_location", "Kho trung tâm"),
         "price_vnd": item.get("price_vnd", 0),
         "updated_at": item.get("updated_at", datetime.now().isoformat()),
