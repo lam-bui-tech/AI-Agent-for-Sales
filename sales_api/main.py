@@ -48,23 +48,29 @@ class InventoryCheckRequest(BaseModel):
 class CreateLeadRequest(BaseModel):
     channel: str = Field(..., description="Kênh tương tác (telegram, zalo, messenger, web)")
     phone: str = Field(..., description="Số điện thoại khách hàng")
-    consent_to_contact: bool = Field(..., description="Khách hàng đã xác nhận đồng ý nhận tư vấn")
+    consent_to_contact: Optional[bool] = Field(None, description="Khách hàng đã xác nhận đồng ý nhận tư vấn")
+    consent: Optional[bool] = Field(None, description="Alias cho consent_to_contact")
     name: Optional[str] = Field(None, description="Tên khách hàng")
     channel_user_id: Optional[str] = Field(None, description="ID người dùng trên kênh")
     product_skus: Optional[List[str]] = Field(None, description="Danh sách SKU khách đang quan tâm")
+    skus: Optional[List[str]] = Field(None, description="Alias cho product_skus")
     budget_vnd: Optional[int] = Field(None, description="Ngân sách khách dự kiến")
     needs_summary: Optional[str] = Field(None, description="Tóm tắt ngắn gọn nhu cầu sử dụng của khách")
+    need: Optional[str] = Field(None, description="Alias cho needs_summary")
     preferred_contact_method: Optional[str] = Field(None, description="Kênh liên hệ khách mong muốn (Zalo, Telegram, Gọi trực tiếp)")
     status: str = Field("new", description="Trạng thái lead: 'new' hoặc 'discount_pending'")
 
 class HandoffRequest(BaseModel):
-    conversation_id: str = Field(..., description="ID phiên hội thoại")
+    conversation_id: Optional[str] = Field(None, description="ID phiên hội thoại")
     reason: str = Field(..., description="Lý do chuyển người (discount_request, bulk_purchase, invoice_request, complaint, etc.)")
     summary: str = Field(..., description="Tóm tắt ngắn gọn lý do và bối cảnh chuyển ca")
     priority: str = Field("medium", description="Mức độ ưu tiên: low, medium, high, urgent")
     suggested_next_action: Optional[str] = Field(None, description="Gợi ý hành động tiếp theo cho sales")
     preferred_contact_method: Optional[str] = Field(None, description="Kênh liên hệ khách mong muốn (Zalo, Telegram, Gọi trực tiếp)")
     status: str = Field("open", description="Trạng thái ticket: 'open' hoặc 'discount_pending'")
+    channel: Optional[str] = Field(None, description="Kênh tương tác (tuỳ chọn)")
+    contact: Optional[str] = Field(None, description="Thông tin liên hệ (tuỳ chọn)")
+
 
 class PolicyRequest(BaseModel):
     topic: str = Field(..., description="Chủ đề chính sách cần tra cứu (bảo hành, đổi trả, vận chuyển, vat, trả góp)")
@@ -143,15 +149,18 @@ def tool_check_inventory(req: InventoryCheckRequest):
 @app.post("/api/tools/create_lead", summary="Tool 4: Tạo hồ sơ Lead với consent")
 def tool_create_lead(req: CreateLeadRequest):
     start = time.time()
+    effective_consent = req.consent_to_contact if req.consent_to_contact is not None else (req.consent if req.consent is not None else True)
+    effective_skus = req.product_skus or req.skus
+    effective_needs = req.needs_summary or req.need
     result = create_lead(
         channel=req.channel,
         phone=req.phone,
-        consent_to_contact=req.consent_to_contact,
+        consent_to_contact=effective_consent,
         name=req.name,
         channel_user_id=req.channel_user_id,
-        product_skus=req.product_skus,
+        product_skus=effective_skus,
         budget_vnd=req.budget_vnd,
-        needs_summary=req.needs_summary,
+        needs_summary=effective_needs,
         preferred_contact_method=req.preferred_contact_method,
         status=req.status
     )
@@ -165,18 +174,20 @@ def tool_create_lead(req: CreateLeadRequest):
 @app.post("/api/tools/handoff_to_human", summary="Tool 5: Chuyển giao ca cho nhân viên sales")
 def tool_handoff(req: HandoffRequest):
     start = time.time()
+    eff_conv_id = req.conversation_id or (f"{req.channel}:{req.contact}" if req.channel and req.contact else (req.channel or req.contact or "unknown"))
     result = handoff_to_human(
-        conversation_id=req.conversation_id,
+        conversation_id=eff_conv_id,
         reason=req.reason,
         summary=req.summary,
         priority=req.priority,
         suggested_next_action=req.suggested_next_action,
-        preferred_contact_method=req.preferred_contact_method,
+        preferred_contact_method=req.preferred_contact_method or req.contact,
         status=req.status
     )
     duration = (time.time() - start) * 1000
     log_audit("handoff_to_human", req.dict(), result, duration_ms=duration, success=True)
     return result
+
 
 @app.get("/get_policy_answer", summary="Tool 6: Tra cứu chính sách (GET)")
 @app.get("/api/tools/get_policy_answer", summary="Tool 6: Tra cứu chính sách (GET)")
