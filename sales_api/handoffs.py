@@ -1,0 +1,103 @@
+import uuid
+from datetime import datetime
+from typing import Dict, Any, List, Optional
+try:
+    from .db import get_connection, log_audit
+    from .notifications import send_telegram_alert
+except (ImportError, ValueError):
+    from db import get_connection, log_audit
+    from notifications import send_telegram_alert
+
+VALID_HANDOFF_REASONS = {
+    "discount_request": "Khách hàng yêu cầu giảm giá hoặc deal giá vượt quyền hạn của Agent",
+    "bulk_purchase": "Khách hàng doanh nghiệp hoặc cá nhân cần mua số lượng lớn (B2B)",
+    "invoice_request": "Khách hàng yêu cầu hỗ trợ hợp đồng và hóa đơn VAT đặc biệt",
+    "complaint": "Khiếu nại về dịch vụ, lỗi máy hoặc bảo hành cần quản lý can thiệp",
+    "product_not_found": "Không tìm thấy cấu hình hoặc sản phẩm phù hợp trong catalog",
+    "inventory_uncertain": "Tồn kho không chắc chắn hoặc hệ thống gặp sự cố tra cứu",
+    "policy_exception": "Yêu cầu ngoại lệ về chính sách bảo hành, đổi trả, đặt cọc",
+    "customer_requests_human": "Khách hàng chủ động yêu cầu nói chuyện trực tiếp với nhân viên",
+    "agent_low_confidence": "Agent không đủ dữ liệu tin cậy để trả lời tiếp"
+}
+
+def handoff_to_human(
+    conversation_id: str,
+    reason: str,
+    summary: str,
+    priority: str = "medium",
+    suggested_next_action: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Chuyển giao phiên tư vấn sang nhân viên kinh doanh / quản lý kèm tóm tắt ngữ cảnh.
+    """
+    clean_reason = reason.strip().lower()
+    if clean_reason not in VALID_HANDOFF_REASONS:
+        clean_reason = "customer_requests_human"
+
+    clean_priority = priority.strip().lower()
+    if clean_priority not in ["low", "medium", "high", "urgent"]:
+        clean_priority = "medium"
+
+    ticket_id = f"TICK-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+    now_iso = datetime.now().isoformat()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO handoff_tickets (
+        ticket_id, conversation_id, reason, priority, summary, suggested_next_action, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        ticket_id,
+        conversation_id,
+        clean_reason,
+        clean_priority,
+        summary,
+        suggested_next_action or "Nhân viên liên hệ và xử lý yêu cầu",
+        "open",
+        now_iso
+    ))
+    conn.commit()
+    conn.close()
+
+    result = {
+        "success": True,
+        "ticket_id": ticket_id,
+        "status": "handoff_created",
+        "reason": clean_reason,
+        "reason_description": VALID_HANDOFF_REASONS.get(clean_reason, ""),
+        "priority": clean_priority,
+        "summary": summary,
+        "suggested_next_action": suggested_next_action,
+        "message": f"Mình đã chuyển ca cho bộ phận tư vấn chuyên môn (Mã vé: {ticket_id}). Chuyên viên sẽ tiếp nhận và hỗ trợ bạn ngay nhé!"
+    }
+
+    # Gửi thông báo tức thì về Telegram Sales nếu có cấu hình
+    try:
+        alert_msg = (
+            f"🚨 <b>YÊU CẦU CHUYỂN NHÂN VIÊN ({clean_priority.upper()})</b>\n"
+            f"🎫 <b>Mã vé:</b> <code>{ticket_id}</code>\n"
+            f"📌 <b>Lý do:</b> {VALID_HANDOFF_REASONS.get(clean_reason, clean_reason)}\n"
+            f"💬 <b>Hội thoại:</b> {conversation_id}\n"
+            f"📋 <b>Tóm tắt:</b> {summary}\n"
+            f"👉 <b>Hành động tiếp theo:</b> {suggested_next_action or 'Chăm sóc khách hàng'}"
+        )
+        send_telegram_alert(alert_msg)
+    except Exception as e:
+        print(f"Error dispatching handoff alert: {e}")
+
+    log_audit("handoff_to_human", {
+        "conversation_id": conversation_id,
+        "reason": clean_reason,
+        "priority": clean_priority
+    }, result, success=True)
+
+    return result
+
+def get_all_handoffs() -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM handoff_tickets ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

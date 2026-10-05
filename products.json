@@ -1,0 +1,62 @@
+[
+  {
+    "sku": "LP-001",
+    "name": "Forge Code 15",
+    "category": "laptop",
+    "cpu": "Ryzen 7 7840HS",
+    "ram_gb": 32,
+    "storage": "1TB SSD",
+    "os": "Windows 11",
+    "price_vnd": 24500000,
+    "audience": "lập trình, chạy nhiều container/máy ảo",
+    "stock": 6
+  },
+  {
+    "sku": "LP-002",
+    "name": "Forge Air 14",
+    "category": "laptop",
+    "cpu": "Core i5-1340P",
+    "ram_gb": 16,
+    "storage": "512GB SSD",
+    "os": "Windows 11",
+    "price_vnd": 21900000,
+    "audience": "di chuyển nhiều, pin lâu, công việc văn phòng + code nhẹ",
+    "stock": 12
+  },
+  {
+    "sku": "LP-003",
+    "name": "Forge Pro X16",
+    "category": "laptop",
+    "cpu": "Core i7-13700H",
+    "ram_gb": 32,
+    "storage": "1TB SSD",
+    "os": "Windows 11",
+    "price_vnd": 32900000,
+    "audience": "dựng phim, AI/ML nhẹ, đa nhiệm nặng",
+    "stock": 0
+  },
+  {
+    "sku": "LP-004",
+    "name": "Forge Book Mac",
+    "category": "laptop",
+    "cpu": "Apple M2",
+    "ram_gb": 16,
+    "storage": "512GB SSD",
+    "os": "macOS",
+    "price_vnd": 27900000,
+    "audience": "lập trình iOS/macOS, thiết kế",
+    "stock": 4
+  },
+  {
+    "sku": "LP-005",
+    "name": "Forge Budget 14",
+    "category": "laptop",
+    "cpu": "Core i3-1215U",
+    "ram_gb": 8,
+    "storage": "256GB SSD",
+    "os": "Windows 11",
+    "price_vnd": 13500000,
+    "audience": "học tập, văn phòng cơ bản",
+    "stock": 20
+  }
+]

@@ -1,0 +1,137 @@
+{
+  "LAP-001": {
+    "sku": "LAP-001",
+    "name": "Nova Pro 14",
+    "available": true,
+    "quantity": 8,
+    "warehouse_location": "Kho Hà Nội (Cầu Giấy)",
+    "price_vnd": 23990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-002": {
+    "sku": "LAP-002",
+    "name": "Forge Code 15",
+    "available": true,
+    "quantity": 3,
+    "warehouse_location": "Kho TP.HCM (Quận 10)",
+    "price_vnd": 27990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-003": {
+    "sku": "LAP-003",
+    "name": "ThinkZen Slim 13",
+    "available": true,
+    "quantity": 5,
+    "warehouse_location": "Kho Hà Nội (Đống Đa)",
+    "price_vnd": 21500000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-004": {
+    "sku": "LAP-004",
+    "name": "AeroBook Pro 16",
+    "available": true,
+    "quantity": 4,
+    "warehouse_location": "Kho TP.HCM (Tân Bình)",
+    "price_vnd": 34990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-005": {
+    "sku": "LAP-005",
+    "name": "Apex Titan 16",
+    "available": true,
+    "quantity": 2,
+    "warehouse_location": "Kho Hà Nội (Cầu Giấy)",
+    "price_vnd": 41990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-006": {
+    "sku": "LAP-006",
+    "name": "EcoBook Air 14",
+    "available": true,
+    "quantity": 10,
+    "warehouse_location": "Kho TP.HCM (Quận 1)",
+    "price_vnd": 13990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-007": {
+    "sku": "LAP-007",
+    "name": "EcoBook Plus 15",
+    "available": true,
+    "quantity": 7,
+    "warehouse_location": "Kho Hà Nội (Cầu Giấy)",
+    "price_vnd": 16990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-008": {
+    "sku": "LAP-008",
+    "name": "FruitBook Air M2",
+    "available": true,
+    "quantity": 6,
+    "warehouse_location": "Kho TP.HCM (Quận 1)",
+    "price_vnd": 24500000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-009": {
+    "sku": "LAP-009",
+    "name": "FruitBook Pro 14 M3",
+    "available": true,
+    "quantity": 4,
+    "warehouse_location": "Kho Hà Nội (Cầu Giấy)",
+    "price_vnd": 46990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-010": {
+    "sku": "LAP-010",
+    "name": "DevStation Linux 15",
+    "available": false,
+    "quantity": 0,
+    "warehouse_location": "Hết hàng toàn hệ thống",
+    "price_vnd": 29990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-011": {
+    "sku": "LAP-011",
+    "name": "Creator Studio 16 OLED",
+    "available": true,
+    "quantity": 3,
+    "warehouse_location": "Kho TP.HCM (Quận 10)",
+    "price_vnd": 38990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-012": {
+    "sku": "LAP-012",
+    "name": "SwiftGo 14 AI",
+    "available": true,
+    "quantity": 9,
+    "warehouse_location": "Kho Hà Nội (Đống Đa)",
+    "price_vnd": 20990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-013": {
+    "sku": "LAP-013",
+    "name": "GameZone 15 RTX",
+    "available": true,
+    "quantity": 6,
+    "warehouse_location": "Kho TP.HCM (Tân Bình)",
+    "price_vnd": 22490000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-014": {
+    "sku": "LAP-014",
+    "name": "BizSecure 14 Enterprise",
+    "available": true,
+    "quantity": 5,
+    "warehouse_location": "Kho Hà Nội (Cầu Giấy)",
+    "price_vnd": 31500000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  },
+  "LAP-015": {
+    "sku": "LAP-015",
+    "name": "UltraFlex 2-in-1",
+    "available": false,
+    "quantity": 0,
+    "warehouse_location": "Hết hàng toàn hệ thống",
+    "price_vnd": 25990000,
+    "updated_at": "2026-09-29T09:00:00+07:00"
+  }
+}
