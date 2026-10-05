@@ -836,6 +836,8 @@ Bạn đang cần tìm laptop phân khúc nào hay ngân sách khoảng bao nhi�
       return msgDiv;
     }
 
+    let currentUserId = 'web_user_' + Math.random().toString(36).substring(2, 9);
+
     async function sendMessage() {
       const input = document.getElementById('user-input');
       const text = input.value.trim();
@@ -860,7 +862,7 @@ Bạn đang cần tìm laptop phân khúc nào hay ngân sách khoảng bao nhi�
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+          body: JSON.stringify({ message: text, user_id: currentUserId })
         });
         const data = await res.json();
         
@@ -882,6 +884,7 @@ Bạn đang cần tìm laptop phân khúc nào hay ngân sách khoảng bao nhi�
     }
 
     function clearChat() {
+      currentUserId = 'web_user_' + Math.random().toString(36).substring(2, 9);
       const chat = document.getElementById('chat-messages');
       chat.innerHTML = `
         <div class="msg msg-agent">

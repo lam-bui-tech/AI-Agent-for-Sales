@@ -1,6 +1,7 @@
 import time
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException, Query, Request, BackgroundTasks
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -9,6 +10,7 @@ from .catalog import search_products, get_product_details, get_policy_answer
 from .inventory import check_inventory, adjust_inventory, load_inventory
 from .leads import create_lead, get_all_leads
 from .handoffs import handoff_to_human, get_all_handoffs
+from .zalo import initiate_zalo_login, get_zalo_status, LOCAL_QR_PATH
 
 app = FastAPI(
     title="DemoTech Sales Copilot API",
@@ -229,13 +231,27 @@ def web_chat(req: ChatMessageRequest):
     if not msg:
         return {"reply": "Chào bạn! Mình là Mèo Con 👨‍💻 — bạn cần tìm laptop phục vụ nhu cầu gì hay mức ngân sách bao nhiêu ạ?"}
     
+    session_id = f"web_{req.user_id or 'default'}"
     try:
-        cmd = ["docker", "exec", "openclaw-cont", "openclaw", "agent", "--message", msg]
-        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=45)
+        cmd = ["docker", "exec", "openclaw-cont", "openclaw", "agent", "--session-id", session_id, "--message", msg]
+        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=90)
         if proc.returncode == 0 and proc.stdout.strip():
             return {"reply": proc.stdout.strip(), "source": "openclaw-agent"}
+        elif proc.stdout.strip():
+            return {"reply": proc.stdout.strip(), "source": "openclaw-agent-partial"}
         else:
             print("Docker agent err:", proc.stderr)
+            if "overloaded" in proc.stderr.lower() or "rate limit" in proc.stderr.lower():
+                return {
+                    "reply": "Dạ hệ thống AI đang chịu tải cao tạm thời, mình xin lỗi vì sự bất tiện này. Bạn vui lòng gửi lại câu hỏi sau giây lát nhé ạ.",
+                    "source": "overloaded_notice"
+                }
+    except subprocess.TimeoutExpired:
+        print(f"Docker agent timed out for message: {msg[:50]}")
+        return {
+            "reply": "Yêu cầu tra cứu đang mất nhiều thời gian hơn bình thường do hệ thống phân tích nhiều dữ liệu. Bạn vui lòng thử lại sau giây lát ạ.",
+            "source": "timeout"
+        }
     except Exception as e:
         print("Exception executing docker agent:", e)
         
@@ -335,6 +351,52 @@ async def receive_messenger_webhook(request: Request, background_tasks: Backgrou
                     background_tasks.add_task(process_and_reply_messenger, sender_id, message_text)
                     
     return {"status": "ok"}
+
+# --- Zalo Channel Integration Endpoints ---
+
+@app.post("/api/zalo/login", summary="Bắt đầu đăng nhập Zalo bằng mã QR (OpenClaw)")
+@app.get("/api/zalo/login", summary="Bắt đầu đăng nhập Zalo bằng mã QR (OpenClaw GET)")
+def zalo_login_endpoint(force: bool = Query(False, description="Bắt buộc tạo mã QR mới")):
+    """
+    Kích hoạt OpenClaw tạo mã QR đăng nhập Zalo Personal,
+    tải ảnh QR về workspace máy chủ và trả về đường dẫn cùng dữ liệu Base64.
+    """
+    res = initiate_zalo_login(force=force)
+    return res
+
+@app.get("/api/zalo/qr.png", summary="Lấy file ảnh mã QR Zalo hiện tại")
+def zalo_qr_image_endpoint():
+    """Trả về file ảnh PNG của mã QR Zalo để hiển thị trực tiếp trên trình duyệt."""
+    if not LOCAL_QR_PATH.exists():
+        raise HTTPException(status_code=404, detail="Chưa có mã QR đăng nhập nào. Hãy gọi /api/zalo/login để tạo.")
+    return FileResponse(LOCAL_QR_PATH, media_type="image/png")
+
+@app.get("/api/zalo/qr", summary="Lấy thông tin và mã Base64 của mã QR Zalo")
+def zalo_qr_info_endpoint():
+    """Trả về thông tin chi tiết về mã QR Zalo (base64, URL, đường dẫn file)."""
+    import base64
+    if not LOCAL_QR_PATH.exists():
+        raise HTTPException(status_code=404, detail="Chưa có mã QR đăng nhập nào. Hãy gọi /api/zalo/login để tạo.")
+    b64_str = base64.b64encode(LOCAL_QR_PATH.read_bytes()).decode("utf-8")
+    return {
+        "status": "ready_to_scan",
+        "qr_image_url": "/api/zalo/qr.png",
+        "qr_base64": f"data:image/png;base64,{b64_str}",
+        "local_file_path": str(LOCAL_QR_PATH)
+    }
+
+@app.get("/api/zalo/status", summary="Kiểm tra trạng thái kết nối Zalo trên OpenClaw")
+def zalo_status_endpoint():
+    """Kiểm tra xem tài khoản Zalo đã đăng nhập và liên kết thành công vào OpenClaw hay chưa."""
+    return get_zalo_status()
+
+@app.get("/zalo", summary="Trang giao diện đăng nhập Zalo QR")
+def zalo_page_endpoint():
+    """Giao diện web trực quan để quét mã QR và theo dõi đăng nhập Zalo."""
+    zalo_html = Path(__file__).parent / "static" / "zalo.html"
+    if zalo_html.exists():
+        return FileResponse(zalo_html, media_type="text/html")
+    raise HTTPException(status_code=404, detail="File zalo.html không tồn tại")
 
 @app.get("/health", summary="Health Check")
 def health_check():

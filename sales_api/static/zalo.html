@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liên Kết Zalo — OpenClaw AI Sales Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #0068ff; /* Zalo Blue */
+      --primary-glow: rgba(0, 104, 255, 0.3);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: 
+        radial-gradient(at 20% 20%, rgba(0, 104, 255, 0.12) 0px, transparent 50%),
+        radial-gradient(at 80% 80%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0068ff, #00d2ff, #10b981);
+    }
+
+    .logo-badge {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #0068ff, #00b4d8);
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 8px 24px var(--primary-glow);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .qr-wrapper {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      display: inline-block;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      margin-bottom: 24px;
+      position: relative;
+      min-width: 250px;
+      min-height: 250px;
+    }
+
+    .qr-image {
+      width: 240px;
+      height: 240px;
+      object-fit: contain;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .status-pill.connected {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--emerald);
+    }
+
+    .status-pill.waiting {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--amber);
+    }
+
+    .status-pill.disconnected {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: var(--rose);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .instructions {
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      font-size: 0.85rem;
+      color: #d1d5db;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 6px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #0068ff;
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: #0056d6;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .api-badge {
+      margin-top: 24px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-badge">💬</div>
+    <h1>Liên Kết Zalo Cá Nhân</h1>
+    <p class="subtitle">Đăng nhập tài khoản Zalo để AI Agent OpenClaw tự động tư vấn và chăm sóc khách hàng.</p>
+
+    <div id="statusPill" class="status-pill waiting">
+      <span class="pulse-dot"></span>
+      <span id="statusText">Đang kiểm tra trạng thái...</span>
+    </div>
+
+    <div class="qr-wrapper">
+      <img id="qrImg" class="qr-image" src="/api/zalo/qr.png" alt="Zalo Login QR Code">
+    </div>
+
+    <div class="instructions">
+      <ol>
+        <li>Mở ứng dụng <strong>Zalo</strong> trên điện thoại.</li>
+        <li>Bấm vào biểu tượng <strong>Quét mã QR</strong> ở góc trên bên phải.</li>
+        <li>Hướng camera vào mã QR trên để quét và bấm <strong>Đăng nhập</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btnRefresh" onclick="refreshQr(true)">
+        🔄 Tạo lại mã QR
+      </button>
+      <button class="btn-secondary" onclick="checkStatus()">
+        ⚡ Kiểm tra kết nối
+      </button>
+    </div>
+
+    <div class="api-badge">
+      API Endpoint: <code>POST /api/zalo/login</code> | <code>GET /api/zalo/status</code>
+    </div>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/zalo/status');
+        const data = await res.json();
+        const pill = document.getElementById('statusPill');
+        const text = document.getElementById('statusText');
+
+        if (data.is_authenticated) {
+          pill.className = 'status-pill connected';
+          text.textContent = 'Đã liên kết Zalo thành công (Running & Connected)';
+        } else if (data.login_in_progress) {
+          pill.className = 'status-pill waiting';
+          text.textContent = 'Đang chờ bạn quét mã QR xác nhận trên điện thoại...';
+        } else {
+          pill.className = 'status-pill disconnected';
+          text.textContent = 'Chưa đăng nhập. Vui lòng bấm Tạo lại mã QR.';
+        }
+      } catch (err) {
+        console.error('Lỗi kiểm tra trạng thái:', err);
+      }
+    }
+
+    async function refreshQr(force = false) {
+      const btn = document.getElementById('btnRefresh');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang khởi tạo...';
+      try {
+        const res = await fetch(`/api/zalo/login?force=${force}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'ready_to_scan') {
+          const img = document.getElementById('qrImg');
+          img.src = data.qr_base64 || `/api/zalo/qr.png?t=${Date.now()}`;
+          await checkStatus();
+        }
+      } catch (e) {
+        console.error('Lỗi làm mới QR:', e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Tạo lại mã QR';
+      }
+    }
+
+    // Auto poll status every 4 seconds
+    setInterval(checkStatus, 4000);
+    checkStatus();
+  </script>
+</body>
+</html>
