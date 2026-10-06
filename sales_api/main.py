@@ -362,25 +362,31 @@ def verify_messenger_webhook(request: Request):
 # Bộ nhớ đệm lưu các message ID đã xử lý để tránh trả lời lặp lại
 PROCESSED_MESSAGE_IDS = set()
 
+def get_messenger_token() -> str:
+    # 1. Thử đọc từ /app/.env hoặc parent/.env
+    for p in [Path("/app/.env"), Path(__file__).parent.parent / ".env", Path(__file__).parent / ".env"]:
+        if p.exists():
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("MESSENGER_PAGE_ACCESS_TOKEN="):
+                            val = line.split("=", 1)[1].strip()
+                            if val:
+                                return val
+            except Exception:
+                pass
+    return os.getenv("MESSENGER_PAGE_ACCESS_TOKEN", "")
+
 def process_and_reply_messenger(sender_id: str, message_text: str):
     import subprocess
     try:
+        print(f"[Messenger] Start processing message from {sender_id}: {message_text}", flush=True)
         cmd = ["docker", "exec", "openclaw-cont", "openclaw", "agent", "--session-id", f"fb_{sender_id}", "--message", message_text]
-        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=45)
-        reply = proc.stdout.strip() if proc.returncode == 0 else "Mèo Con đang tiếp nhận yêu cầu, chờ xíu nhé!"
+        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=60)
+        reply = proc.stdout.strip() if proc.returncode == 0 and proc.stdout.strip() else "Mèo Con đang tiếp nhận yêu cầu, chờ xíu nhé!"
         
-        # Đọc token Page mới nhất
-        access_token = os.getenv("MESSENGER_PAGE_ACCESS_TOKEN", "")
-        env_file = Path(__file__).parent.parent / ".env"
-        if env_file.exists():
-            with open(env_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith("MESSENGER_PAGE_ACCESS_TOKEN="):
-                        access_token = line.split("=", 1)[1].strip()
-                        break
-        
-        print(f"[Messenger] Processing message from {sender_id}: {message_text}")
-        print(f"[Messenger] OpenClaw Reply: {reply}")
+        access_token = get_messenger_token()
+        print(f"[Messenger] OpenClaw Reply for {sender_id}: {reply}", flush=True)
         
         if access_token:
             url = f"https://graph.facebook.com/v21.0/me/messages?access_token={access_token}"
@@ -388,48 +394,56 @@ def process_and_reply_messenger(sender_id: str, message_text: str):
                 "recipient": {"id": sender_id},
                 "message": {"text": reply}
             }
-            fb_resp = requests.post(url, json=payload)
-            print(f"[Messenger] Graph API response status={fb_resp.status_code}, body={fb_resp.text}")
+            fb_resp = requests.post(url, json=payload, timeout=15)
+            print(f"[Messenger] Graph API response status={fb_resp.status_code}, body={fb_resp.text}", flush=True)
         else:
-            print("[Messenger] Error: MESSENGER_PAGE_ACCESS_TOKEN is missing!")
+            print("[Messenger] Error: MESSENGER_PAGE_ACCESS_TOKEN is missing or empty!", flush=True)
     except Exception as e:
-        print(f"Error processing Messenger message: {e}")
+        print(f"[Messenger] Error processing message: {e}", flush=True)
 
 @app.post("/api/webhooks/messenger", summary="Receive Messenger Message")
 async def receive_messenger_webhook(request: Request, background_tasks: BackgroundTasks):
     data = await request.json()
+    print(f"[Messenger Webhook] Raw event: {data}", flush=True)
     if data.get("object") == "page":
         current_time_ms = int(time.time() * 1000)
         for entry in data.get("entry", []):
             entry_time = entry.get("time", current_time_ms)
             for messaging_event in entry.get("messaging", []):
-                if "message" in messaging_event and "text" in messaging_event["message"]:
-                    # Bỏ qua tin nhắn echo từ chính Trang
-                    if messaging_event["message"].get("is_echo"):
+                sender_id = messaging_event.get("sender", {}).get("id")
+                if not sender_id:
+                    continue
+
+                message_text = None
+                if "message" in messaging_event:
+                    msg_obj = messaging_event["message"]
+                    if msg_obj.get("is_echo"):
                         continue
-                    
-                    # 1. Bỏ qua tin nhắn cũ bị Facebook retry/tồn đọng (quá 45 giây trước)
-                    msg_time = messaging_event.get("timestamp") or entry_time
-                    if (current_time_ms - msg_time) > 45 * 1000:
-                        print(f"[Messenger] Bỏ qua tin cũ tồn đọng (cách đây {(current_time_ms - msg_time)//1000}s): {messaging_event['message'].get('text')}")
-                        continue
-                    
-                    # 2. Bỏ qua tin nhắn trùng lặp (Facebook retry)
-                    mid = messaging_event.get("message", {}).get("mid")
+                    message_text = msg_obj.get("text")
+                    mid = msg_obj.get("mid")
                     if mid:
                         if mid in PROCESSED_MESSAGE_IDS:
-                            print(f"[Messenger] Bỏ qua tin nhắn đã xử lý: {mid}")
+                            print(f"[Messenger] Bỏ qua tin nhắn đã xử lý: {mid}", flush=True)
                             continue
                         PROCESSED_MESSAGE_IDS.add(mid)
                         if len(PROCESSED_MESSAGE_IDS) > 2000:
                             PROCESSED_MESSAGE_IDS.clear()
-                    
-                    sender_id = messaging_event["sender"]["id"]
-                    message_text = messaging_event["message"]["text"]
-                    
-                    # Trả về 200 OK ngay cho Facebook và xử lý gửi tin trong background
-                    background_tasks.add_task(process_and_reply_messenger, sender_id, message_text)
-                    
+                elif "postback" in messaging_event:
+                    pb = messaging_event["postback"]
+                    message_text = pb.get("title") or pb.get("payload")
+
+                if not message_text:
+                    continue
+
+                # Bỏ qua tin cũ tồn đọng (> 5 phút trước)
+                msg_time = messaging_event.get("timestamp") or entry_time
+                if (current_time_ms - msg_time) > 300 * 1000:
+                    print(f"[Messenger] Bỏ qua tin cũ tồn đọng (cách đây {(current_time_ms - msg_time)//1000}s): {message_text}", flush=True)
+                    continue
+
+                print(f"[Messenger Webhook] Dispatching task for {sender_id}: {message_text}", flush=True)
+                background_tasks.add_task(process_and_reply_messenger, sender_id, message_text)
+
     return {"status": "ok"}
 
 # --- Zalo Channel Integration Endpoints ---

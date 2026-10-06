@@ -10,11 +10,13 @@ services:
     volumes:
       - ./data:/app/data
       - ./sales_api:/app/sales_api
+      - ./.env:/app/.env:ro
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
     environment:
       - SALES_API_URL=http://sales-api:8088
+      - PYTHONUNBUFFERED=1
     networks:
       - sales-network
 
