@@ -1,0 +1,39 @@
+services:
+  sales-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.sales_api
+    container_name: sales-api-cont
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:8088"
+    volumes:
+      - ./data:/app/data
+      - ./sales_api:/app/sales_api
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    environment:
+      - SALES_API_URL=http://sales-api:8088
+    networks:
+      - sales-network
+
+  openclaw-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw
+    container_name: openclaw-cont
+    restart: unless-stopped
+    environment:
+      - SALES_API_URL=http://sales-api:8088
+    volumes:
+      - ./openclaw-config:/root/.openclaw
+    networks:
+      - sales-network
+    depends_on:
+      - sales-api
+
+networks:
+  sales-network:
+    name: sales-network
+    driver: bridge

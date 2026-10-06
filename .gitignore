@@ -1,7 +1,35 @@
+# Environment & Secrets
 .env
+.env*.local
+
+# Databases & Runtime Data
 *.db
 *.sqlite
+openclaw-config/
+
+# Large Archive & Docker Tars
+*.tar
+*.tar.gz
+*.zip
+
+# Python & Tests
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Node & Next.js Build Artifacts
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Temporary & Backup files
+*.old.html
+*.log
+.DS_Store
+Thumbs.db
+
+# Documentation & Agents
 *docs
+.agents/

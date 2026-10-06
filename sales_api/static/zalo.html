@@ -235,15 +235,20 @@
       <span id="statusText">Đang kiểm tra trạng thái...</span>
     </div>
 
-    <div class="qr-wrapper">
-      <img id="qrImg" class="qr-image" src="/api/zalo/qr.png" alt="Zalo Login QR Code">
+    <div class="qr-wrapper" id="qrContainer">
+      <img id="qrImg" class="qr-image" src="" alt="Zalo Login QR Code" style="display: none;">
+      <div id="qrLoading" style="padding: 60px 20px; color: #9ca3af; font-size: 0.95rem;">
+        <span class="pulse-dot" style="display: inline-block; margin-right: 8px;"></span>
+        Đang khởi tạo mã QR mới nhất...
+      </div>
     </div>
+    <div id="timerText" style="margin-top: -12px; margin-bottom: 20px; font-size: 0.88rem; color: #f59e0b; font-weight: 600;"></div>
 
     <div class="instructions">
       <ol>
         <li>Mở ứng dụng <strong>Zalo</strong> trên điện thoại.</li>
         <li>Bấm vào biểu tượng <strong>Quét mã QR</strong> ở góc trên bên phải.</li>
-        <li>Hướng camera vào mã QR trên để quét và bấm <strong>Đăng nhập</strong>.</li>
+        <li>Hướng camera vào mã QR trên để quét và bấm <strong>Đăng nhập</strong> trên điện thoại.</li>
       </ol>
     </div>
 
@@ -262,51 +267,150 @@
   </div>
 
   <script>
+    let timerInterval = null;
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      const timerEl = document.getElementById('timerText');
+      let remaining = seconds;
+
+      function update() {
+        if (remaining > 0) {
+          timerEl.innerHTML = `⏱️ Mã QR còn hiệu lực trong <strong>${remaining}s</strong> (Hãy quét ngay)`;
+          timerEl.style.color = '#f59e0b';
+          remaining--;
+        } else {
+          clearInterval(timerInterval);
+          timerEl.innerHTML = `⚠️ Mã QR đã hết hạn. Vui lòng bấm <strong>Tạo lại mã QR</strong> để lấy mã mới.`;
+          timerEl.style.color = '#f43f5e';
+          const img = document.getElementById('qrImg');
+          if (img) img.style.opacity = '0.25';
+        }
+      }
+      update();
+      timerInterval = setInterval(update, 1000);
+    }
+
     async function checkStatus() {
       try {
         const res = await fetch('/api/zalo/status');
         const data = await res.json();
         const pill = document.getElementById('statusPill');
         const text = document.getElementById('statusText');
+        const timerEl = document.getElementById('timerText');
 
         if (data.is_authenticated) {
+          clearInterval(timerInterval);
           pill.className = 'status-pill connected';
           text.textContent = 'Đã liên kết Zalo thành công (Running & Connected)';
+          timerEl.innerHTML = `<span style="color: #10b981;">🎉 Tài khoản Zalo đã đăng nhập thành công! AI Mèo Con đang hoạt động.</span>`;
+          const img = document.getElementById('qrImg');
+          if (img) img.style.display = 'none';
+          const loading = document.getElementById('qrLoading');
+          if (loading) {
+            loading.style.display = 'block';
+            loading.innerHTML = `<span style="font-size: 3rem;">✅</span><br><br><strong style="color: #10b981;">Zalo đã kết nối thành công!</strong>`;
+          }
         } else if (data.login_in_progress) {
           pill.className = 'status-pill waiting';
           text.textContent = 'Đang chờ bạn quét mã QR xác nhận trên điện thoại...';
         } else {
           pill.className = 'status-pill disconnected';
-          text.textContent = 'Chưa đăng nhập. Vui lòng bấm Tạo lại mã QR.';
+          text.textContent = 'Chưa liên kết. Vui lòng quét mã QR bên dưới.';
         }
+        return data;
       } catch (err) {
         console.error('Lỗi kiểm tra trạng thái:', err);
       }
     }
 
-    async function refreshQr(force = false) {
+    function showQr(data) {
+      const img = document.getElementById('qrImg');
+      const loading = document.getElementById('qrLoading');
+      img.src = data.qr_base64 || `/api/zalo/qr.png?t=${Date.now()}`;
+      img.style.display = 'block';
+      img.style.opacity = '1';
+      loading.style.display = 'none';
+      startTimer(data.expires_in_seconds || 120);
+      checkStatus();
+    }
+
+    async function checkCurrentQr() {
+      try {
+        const res = await fetch('/api/zalo/qr');
+        const data = await res.json();
+        if (data && data.status === 'ready_to_scan' && data.qr_base64) {
+          showQr(data);
+          return true;
+        }
+      } catch (e) {
+        console.warn('Chưa có QR sẵn:', e);
+      }
+      return false;
+    }
+
+    async function refreshQr(force = true) {
       const btn = document.getElementById('btnRefresh');
+      const img = document.getElementById('qrImg');
+      const loading = document.getElementById('qrLoading');
+      const timerEl = document.getElementById('timerText');
+
       btn.disabled = true;
       btn.textContent = '⏳ Đang khởi tạo...';
+      img.style.display = 'none';
+      loading.style.display = 'block';
+      loading.innerHTML = `<span class="pulse-dot" style="display: inline-block; margin-right: 8px;"></span>Đang kết nối Zalo sinh mã QR mới...`;
+      timerEl.textContent = '';
+
       try {
         const res = await fetch(`/api/zalo/login?force=${force}`, { method: 'POST' });
         const data = await res.json();
         if (data.status === 'ready_to_scan') {
-          const img = document.getElementById('qrImg');
-          img.src = data.qr_base64 || `/api/zalo/qr.png?t=${Date.now()}`;
-          await checkStatus();
+          showQr(data);
+        } else {
+          // Poll /api/zalo/qr liên tục mỗi 1.2s tối đa 12 lần
+          let found = false;
+          for (let i = 0; i < 12; i++) {
+            await new Promise(r => setTimeout(r, 1200));
+            const qrRes = await fetch('/api/zalo/qr');
+            const qrData = await qrRes.json();
+            if (qrData && qrData.status === 'ready_to_scan') {
+              showQr(qrData);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            loading.innerHTML = `⚠️ Đang khởi tạo, bấm <strong>Tạo lại mã QR</strong> để lấy mã.`;
+          }
         }
       } catch (e) {
         console.error('Lỗi làm mới QR:', e);
+        // Thử đọc lại /api/zalo/qr
+        const hasQr = await checkCurrentQr();
+        if (!hasQr) {
+          loading.innerHTML = `⚠️ Lỗi kết nối khi tạo QR. Bấm nút bên dưới để thử lại.`;
+        }
       } finally {
         btn.disabled = false;
         btn.textContent = '🔄 Tạo lại mã QR';
       }
     }
 
-    // Auto poll status every 4 seconds
-    setInterval(checkStatus, 4000);
-    checkStatus();
+    // Khởi tạo ngay khi tải trang
+    window.addEventListener('DOMContentLoaded', async () => {
+      const statusData = await checkStatus();
+      if (!statusData || !statusData.is_authenticated) {
+        // Kiểm tra xem đã có sẵn mã QR chưa, nếu có thì hiện ngay!
+        const hasQr = await checkCurrentQr();
+        if (!hasQr) {
+          refreshQr(false);
+        }
+      }
+    });
+
+    // Auto poll status every 3 seconds
+    setInterval(checkStatus, 3000);
   </script>
 </body>
 </html>

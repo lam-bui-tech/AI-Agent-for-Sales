@@ -97,6 +97,29 @@ def log_audit(tool_name: str, input_data: Any, output_data: Any, duration_ms: fl
     except Exception as e:
         print(f"Error logging audit: {e}")
 
+def get_latest_log_id() -> int:
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(id) FROM audit_logs")
+        row = cursor.fetchone()
+        conn.close()
+        return row[0] if row and row[0] is not None else 0
+    except Exception:
+        return 0
+
+def get_audit_logs_after(last_id: int) -> List[Dict[str, Any]]:
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM audit_logs WHERE id > ? ORDER BY id ASC", (last_id,))
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+        return rows
+    except Exception:
+        return []
+
 if __name__ == "__main__":
     init_db()
     print("Database initialized successfully at:", DB_PATH)
+

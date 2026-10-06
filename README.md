@@ -59,9 +59,12 @@ ApplyOpenclaw/
 │   ├── handoffs.py              # Xử lý chuyển giao ca và phân loại ticket
 │   ├── notifications.py         # Gửi thông báo Telegram Alert tới quản lý
 │   ├── zalo.py                  # Điều khiển tiến trình QR login Zalo qua OpenClaw
-│   └── static/                  # Giao diện Web Simulator & Zalo QR Login
-│       ├── index.html           # Web Chat Simulator & Admin Dashboard
+│   └── static/                  # Giao diện Web Simulator & Zalo QR Login (Build output từ frontend/)
+│       ├── index.html           # Web Chat Simulator & Admin Dashboard (Linear style)
 │       └── zalo.html            # Trang quét mã QR Zalo
+├── frontend/                    # Ứng dụng Next.js + Tailwind CSS + shadcn/ui + Lucide
+│   ├── src/                     # Source code App Router, Components, Types, API client
+│   └── package.json             # Scripts dev (npm run dev) và build & sync (npm run build:sync)
 ├── data/                        # Dữ liệu mẫu sản phẩm & tồn kho
 │   ├── products.json            # Danh mục 12+ mẫu laptop thực tế
 │   ├── inventory.json           # Dữ liệu tồn kho theo SKU

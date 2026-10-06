@@ -185,7 +185,11 @@ import urllib.request
 import urllib.error
 
 API_BASE_URLS = [
-    os.getenv("SALES_API_URL", "http://host.docker.internal:8000"),
+    os.getenv("SALES_API_URL", "http://sales-api:8088"),
+    "http://sales-api:8088",
+    "http://127.0.0.1:8088",
+    "http://localhost:8088",
+    "http://host.docker.internal:8000",
     "http://127.0.0.1:8000",
     "http://localhost:8000"
 ]

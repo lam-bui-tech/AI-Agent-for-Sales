@@ -1,0 +1,22 @@
+FROM openclaw:latest
+
+# Cài đặt các thư viện cần thiết và libatomic1 cho Node.js v26
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    tar \
+    gzip \
+    libatomic1 \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cài đặt Node.js v26.10.0 chính thức (OpenClaw yêu cầu >=24.16 hoặc >=26.1 do node:sqlite)
+RUN curl -fsSL https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1
+
+# Cài đặt OpenClaw CLI toàn cục
+RUN npm install -g openclaw@2026.9.6
+
+EXPOSE 18789
+
+CMD ["sh", "-c", "/usr/sbin/sshd -D & openclaw gateway run --force"]
+
