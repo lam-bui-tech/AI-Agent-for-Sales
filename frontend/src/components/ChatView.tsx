@@ -100,13 +100,13 @@ export function ChatView({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-slate-900 leading-tight">Mèo Con</h2>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                Sales Copilot
+              <h2 className="text-sm font-semibold text-slate-900 leading-tight">Trợ lý Shop</h2>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                ThueDo.net Copilot
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium">
-              Trực tuyến · Dữ liệu kho thật 100% qua MCP Protocol
+              Trực tuyến · Hệ sinh thái cho thuê trang phục ThueDo.net
             </p>
           </div>
         </div>
@@ -167,7 +167,7 @@ export function ChatView({
               <div className={`space-y-1 max-w-[85%] ${isAgent ? 'text-left' : 'text-right'}`}>
                 {/* Meta info */}
                 <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono px-1">
-                  <span>{isAgent ? 'Mèo Con' : 'Bạn'}</span>
+                  <span>{isAgent ? 'Trợ lý Shop' : 'Bạn'}</span>
                   <span>·</span>
                   <span>{msg.timestamp}</span>
                 </div>
@@ -208,7 +208,7 @@ export function ChatView({
             </div>
             <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 shadow-2xs flex items-center gap-2 font-medium">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-              <span>Mèo Con đang tra cứu dữ liệu kho qua MCP...</span>
+              <span>Trợ lý Shop đang tra cứu dữ liệu ThueDo.net...</span>
             </div>
           </div>
         )}
@@ -226,7 +226,7 @@ export function ChatView({
               value={inputValue}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
-              placeholder="Nhập yêu cầu tư vấn (ví dụ: cần laptop code Docker 28tr, bớt giá 2tr, còn hàng không...)"
+              placeholder="Nhập yêu cầu tư vấn (ví dụ: tiệm áo dài 1 chi nhánh, studio váy cưới cần hợp đồng QR, dùng thử 15 ngày...)"
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 bg-transparent resize-none outline-none max-h-32 leading-relaxed"
             />
 

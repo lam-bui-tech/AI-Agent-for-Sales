@@ -81,9 +81,9 @@ def test_deal_turn_2_lead_creation_with_status_and_contact_method():
         phone="0918234567",
         consent_to_contact=True,
         name="Chị Hương",
-        product_skus=["LAP-002"],
+        product_skus=["PKG-PRO"],
         budget_vnd=26000000,
-        needs_summary="Khách xin giảm giá LAP-002 từ 27.99M xuống 26M",
+        needs_summary="Khách xin giảm giá Gói Pro 3 chi nhánh",
         status="discount_pending",
         preferred_contact_method="Zalo"
     )
@@ -178,7 +178,7 @@ def test_lead_rejection_without_consent():
 
 def test_check_inventory_returns_location():
     """Kiểm tra thông tin tồn kho phải có số lượng và chi tiết kho hàng."""
-    res = check_inventory("LAP-002")
+    res = check_inventory("DEV-PRINTER-QR")
     assert res["found"] is True
     assert res["available"] is True
     assert res["quantity"] > 0

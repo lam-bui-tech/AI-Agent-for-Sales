@@ -97,7 +97,7 @@ export function ZaloModal({ isOpen, onClose }: ZaloModalProps) {
               </div>
               <h4 className="font-semibold text-sm text-slate-900">Zalo đã kết nối thành công!</h4>
               <p className="text-xs text-slate-500 max-w-xs">
-                Agent Mèo Con hiện đã sẵn sàng nhận tin nhắn và tự động tư vấn khách hàng trên Zalo Personal.
+                Trợ lý Shop hiện đã sẵn sàng nhận tin nhắn và tự động tư vấn khách hàng trên Zalo Personal.
               </p>
             </div>
           ) : (

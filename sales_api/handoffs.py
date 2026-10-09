@@ -9,13 +9,17 @@ except (ImportError, ValueError):
     from notifications import send_telegram_alert
 
 VALID_HANDOFF_REASONS = {
+    "discount_pending": "Yêu cầu giảm giá / chiết khấu chờ quản lý duyệt",
     "discount_request": "Khách hàng yêu cầu giảm giá hoặc deal giá vượt quyền hạn của Agent",
-    "bulk_purchase": "Khách hàng doanh nghiệp hoặc cá nhân cần mua số lượng lớn (B2B)",
+    "migration": "Khách yêu cầu hỗ trợ chuyển dữ liệu cũ từ KiotViet/Sapo/Excel sang ThueDo.net",
+    "hardware_setup": "Khách yêu cầu hỗ trợ kết nối thiết bị phần cứng (máy in hóa đơn/hợp đồng QR, máy quét mã vạch)",
+    "live_demo": "Khách yêu cầu đặt lịch hẹn demo 1-1 trực tiếp qua Google Meet hoặc UltraViewer",
+    "bulk_purchase": "Khách hàng chuỗi cửa hàng lớn cần gói giải pháp riêng",
     "invoice_request": "Khách hàng yêu cầu hỗ trợ hợp đồng và hóa đơn VAT đặc biệt",
-    "complaint": "Khiếu nại về dịch vụ, lỗi máy hoặc bảo hành cần quản lý can thiệp",
-    "product_not_found": "Không tìm thấy cấu hình hoặc sản phẩm phù hợp trong catalog",
-    "inventory_uncertain": "Tồn kho không chắc chắn hoặc hệ thống gặp sự cố tra cứu",
-    "policy_exception": "Yêu cầu ngoại lệ về chính sách bảo hành, đổi trả, đặt cọc",
+    "complaint": "Khiếu nại về dịch vụ hoặc sự cố phần mềm cần kỹ thuật can thiệp",
+    "product_not_found": "Không tìm thấy cấu hình hoặc gói cước phù hợp",
+    "inventory_uncertain": "Trạng thái không chắc chắn hoặc hệ thống gặp sự cố tra cứu",
+    "policy_exception": "Yêu cầu ngoại lệ về chính sách",
     "customer_requests_human": "Khách hàng chủ động yêu cầu nói chuyện trực tiếp với nhân viên",
     "agent_low_confidence": "Agent không đủ dữ liệu tin cậy để trả lời tiếp"
 }

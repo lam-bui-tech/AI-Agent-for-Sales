@@ -4,7 +4,6 @@
 import React from 'react';
 import { 
   MessageSquare, 
-  Laptop, 
   Users, 
   Activity, 
   QrCode, 
@@ -26,7 +25,7 @@ interface SidebarProps {
 export function Sidebar({ currentTab, onSelectTab, onOpenZalo, onResetChat }: SidebarProps) {
   const navItems = [
     { id: 'chat' as NavTab, label: 'Trò chuyện Copilot', icon: MessageSquare, badge: null },
-    { id: 'catalog' as NavTab, label: 'Danh mục Laptop', icon: Laptop, badge: '15 SKU' },
+    { id: 'catalog' as NavTab, label: 'Danh mục Gói cước', icon: Layers, badge: '7 SKU' },
     { id: 'crm' as NavTab, label: 'Quản trị Leads & Vé', icon: Users, badge: null },
     { id: 'audit' as NavTab, label: 'Nhật ký Audit Logs', icon: Activity, badge: null },
   ];
@@ -40,7 +39,7 @@ export function Sidebar({ currentTab, onSelectTab, onOpenZalo, onResetChat }: Si
             <Layers className="w-4 h-4" />
           </div>
           <div>
-            <div className="font-semibold text-sm text-slate-900 leading-tight">DemoTech</div>
+            <div className="font-semibold text-sm text-slate-900 leading-tight">ThueDo.net</div>
             <div className="text-[11px] text-slate-500 font-medium">Sales Copilot</div>
           </div>
         </div>
@@ -128,7 +127,7 @@ export function Sidebar({ currentTab, onSelectTab, onOpenZalo, onResetChat }: Si
             </div>
           </div>
           <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Agent: Mèo Con</span>
+            <span>Agent: Trợ lý Shop</span>
             <span>Port: 8088/8090</span>
           </div>
         </div>

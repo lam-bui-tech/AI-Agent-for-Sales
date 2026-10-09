@@ -14,9 +14,9 @@ if hasattr(sys.stderr, "reconfigure"):
 # Ensure sales_api directory is in sys.path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from catalog import search_products, get_product_details, get_policy_answer
+from catalog import search_products, get_product_details, get_policy_answer, calculate_pricing, compare_packages
 from inventory import check_inventory
-from leads import create_lead
+from leads import create_lead, register_trial
 from handoffs import handoff_to_human
 from db import init_db
 
@@ -25,29 +25,25 @@ init_db()
 TOOLS_DEFINITIONS = [
     {
         "name": "search_products",
-        "description": "Tìm kiếm danh sách laptop và phụ kiện phù hợp trong catalog theo ngân sách, RAM, hệ điều hành và nhu cầu sử dụng. Trả về tối đa 3 mẫu máy phù hợp nhất.",
+        "description": "Tìm kiếm danh sách gói phần mềm quản lý cho thuê trang phục ThueDo.net theo nhu cầu sử dụng, ngân sách và quy mô chi nhánh.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Nhu cầu sử dụng của khách (ví dụ: 'laptop code Docker backend', 'máy mỏng nhẹ văn phòng', 'đồ họa 3D')"
+                    "description": "Nhu cầu của shop (ví dụ: 'áo dài 1 chi nhánh', 'studio váy cưới', 'chuỗi đồ biểu diễn')"
                 },
                 "max_price_vnd": {
                     "type": "integer",
-                    "description": "Mức ngân sách tối đa bằng VNĐ (ví dụ: 25000000, 30000000)"
+                    "description": "Mức ngân sách tối đa theo tháng bằng VNĐ (ví dụ: 200000, 350000, 500000)"
                 },
-                "min_ram_gb": {
+                "min_branches": {
                     "type": "integer",
-                    "description": "Dung lượng RAM tối thiểu (ví dụ: 16, 32)"
-                },
-                "preferred_os": {
-                    "type": "string",
-                    "description": "Hệ điều hành mong muốn: 'Windows', 'macOS', hoặc 'Linux'"
+                    "description": "Số chi nhánh tối thiểu cần quản lý"
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Số lượng sản phẩm tối đa trả về (mặc định 3)"
+                    "description": "Số lượng gói tối đa trả về (mặc định 3)"
                 }
             }
         }
@@ -60,7 +56,7 @@ TOOLS_DEFINITIONS = [
             "properties": {
                 "sku": {
                     "type": "string",
-                    "description": "Mã SKU của sản phẩm (ví dụ: 'LAP-001', 'LAP-002')"
+                    "description": "Mã SKU của gói phần mềm hoặc thiết bị (ví dụ: 'PKG-STARTER', 'PKG-PRO', 'DEV-PRINTER-QR')"
                 }
             },
             "required": ["sku"]
@@ -68,13 +64,13 @@ TOOLS_DEFINITIONS = [
     },
     {
         "name": "check_inventory",
-        "description": "BẮT BUỘC GỌI khi khách hỏi máy còn hàng không, có sẵn không, giao ngay được không. Trả về số lượng máy khả dụng thời gian thực.",
+        "description": "BẮT BUỘC GỌI khi khách hỏi thiết bị phần cứng hoặc gói cước còn hàng không, có sẵn không, giao ngay được không. Trả về số lượng khả dụng thời gian thực.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "sku": {
                     "type": "string",
-                    "description": "Mã SKU cần kiểm tra tồn kho (ví dụ: 'LAP-002')"
+                    "description": "Mã SKU cần kiểm tra tồn kho (ví dụ: 'DEV-PRINTER-QR', 'DEV-SCANNER-2D', 'PKG-PRO')"
                 }
             },
             "required": ["sku"]
@@ -113,7 +109,7 @@ TOOLS_DEFINITIONS = [
                 },
                 "needs_summary": {
                     "type": "string",
-                    "description": "Tóm tắt nhu cầu chính của khách (ví dụ: 'cần máy RAM 32GB chạy Docker')"
+                    "description": "Tóm tắt nhu cầu chính của khách (ví dụ: 'studio váy cưới 2 chi nhánh cần in hợp đồng QR và dùng thử 15 ngày')"
                 },
                 "preferred_contact_method": {
                     "type": "string",
@@ -167,16 +163,86 @@ TOOLS_DEFINITIONS = [
     },
     {
         "name": "get_policy_answer",
-        "description": "Tra cứu chính sách bảo hành (1 đổi 1 trong 30 ngày), đổi trả, vận chuyển hỏa tốc, thanh toán trả góp 0%, xuất VAT.",
+        "description": "Tra cứu chính sách dịch vụ ThueDo.net: Dùng thử 15 ngày, hóa đơn điện tử, in hợp đồng, hỗ trợ 24/7.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "topic": {
                     "type": "string",
-                    "description": "Chủ đề chính sách cần tra cứu: 'bảo hành', 'đổi trả', 'vận chuyển', 'vat', 'trả góp'"
+                    "description": "Chủ đề chính sách cần tra cứu: 'dùng thử', 'hóa đơn', 'hợp đồng', 'bảo mật', 'hỗ trợ'"
                 }
             },
             "required": ["topic"]
+        }
+    },
+    {
+        "name": "calculate_pricing",
+        "description": "Tính toán chi phí gói phần mềm ThueDo.net theo chu kỳ đăng ký: 3 tháng nguyên giá, 6 tháng giảm 5%, 12 tháng giảm 10%.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "sku": {
+                    "type": "string",
+                    "description": "Mã SKU của gói phần mềm (PKG-STARTER, PKG-PRO, PKG-PREMIUM)"
+                },
+                "months": {
+                    "type": "integer",
+                    "description": "Số tháng đăng ký (ví dụ: 3, 6, 12)"
+                }
+            },
+            "required": ["sku"]
+        }
+    },
+    {
+        "name": "compare_packages",
+        "description": "So sánh chi tiết tính năng giữa 2 gói phần mềm ThueDo.net (quy mô chi nhánh, hợp đồng QR, hóa đơn điện tử, app mobile) định dạng 2 dòng không dùng bảng kẻ cột.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "sku1": {
+                    "type": "string",
+                    "description": "Mã SKU gói thứ nhất (ví dụ: PKG-STARTER)"
+                },
+                "sku2": {
+                    "type": "string",
+                    "description": "Mã SKU gói thứ hai (ví dụ: PKG-PRO)"
+                }
+            },
+            "required": ["sku1", "sku2"]
+        }
+    },
+    {
+        "name": "register_trial",
+        "description": "Đăng ký kích hoạt chương trình dùng thử miễn phí 15 ngày phần mềm ThueDo.net cho chủ shop thời trang.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shop_name": {
+                    "type": "string",
+                    "description": "Tên shop hoặc studio thời trang"
+                },
+                "fashion_type": {
+                    "type": "string",
+                    "description": "Mặt hàng kinh doanh (áo dài, váy cưới, đồ biểu diễn, dạ hội)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Tên chủ shop hoặc người liên hệ"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Số điện thoại liên hệ hợp lệ"
+                },
+                "branches_count": {
+                    "type": "integer",
+                    "description": "Số chi nhánh hiện tại (mặc định: 1)"
+                },
+                "preferred_contact_method": {
+                    "type": "string",
+                    "description": "Kênh liên hệ ưu tiên: 'Zalo' hoặc 'Gọi trực tiếp'"
+                }
+            },
+            "required": ["shop_name", "fashion_type", "name", "phone"]
         }
     }
 ]
@@ -219,12 +285,25 @@ def handle_tool_call(name: str, args: Dict[str, Any]) -> Any:
         return search_products(
             query=args.get("query"),
             max_price_vnd=args.get("max_price_vnd"),
-            min_ram_gb=args.get("min_ram_gb"),
-            preferred_os=args.get("preferred_os"),
+            min_branches=args.get("min_branches"),
             limit=args.get("limit", 3)
         )
     elif name == "get_product_details":
         return get_product_details(sku=args.get("sku", ""))
+    elif name == "calculate_pricing":
+        return calculate_pricing(sku=args.get("sku", ""), months=args.get("months", 1))
+    elif name == "compare_packages":
+        return compare_packages(sku1=args.get("sku1", ""), sku2=args.get("sku2", ""))
+    elif name == "register_trial":
+        return register_trial(
+            shop_name=args.get("shop_name", ""),
+            fashion_type=args.get("fashion_type", ""),
+            name=args.get("name", ""),
+            phone=args.get("phone", ""),
+            branches_count=args.get("branches_count", 1),
+            channel=args.get("channel", "telegram"),
+            preferred_contact_method=args.get("preferred_contact_method", "Zalo")
+        )
     elif name == "check_inventory":
         return check_inventory(sku=args.get("sku", ""))
     elif name == "create_lead":
@@ -237,7 +316,10 @@ def handle_tool_call(name: str, args: Dict[str, Any]) -> Any:
             budget_vnd=args.get("budget_vnd"),
             needs_summary=args.get("needs_summary"),
             preferred_contact_method=args.get("preferred_contact_method"),
-            status=args.get("status", "new")
+            status=args.get("status", "new"),
+            shop_name=args.get("shop_name"),
+            fashion_type=args.get("fashion_type"),
+            branches_count=args.get("branches_count", 1)
         )
     elif name == "handoff_to_human":
         return handoff_to_human(
@@ -284,8 +366,8 @@ def main():
                             "tools": {}
                         },
                         "serverInfo": {
-                            "name": "demotech-sales-tools",
-                            "version": "1.0.0"
+                            "name": "thuedo-sales-tools",
+                            "version": "2.0.0"
                         }
                     }
                 })

@@ -15,8 +15,8 @@ import { sendChatMessage } from '@/lib/api';
 const INITIAL_MESSAGE: ChatMessage = {
   id: 'init-msg-1',
   sender: 'agent',
-  text: 'Chào bạn! Mình là Mèo Con, trợ lý tư vấn thiết bị công nghệ cho DemoTech.\n\nMình tư vấn nhanh gọn, không đoán mò, có gì cần thì tra dữ liệu thật từ kho.\n\n**Bạn đang cần tìm laptop phân khúc nào hay ngân sách khoảng bao nhiêu ạ?**',
-  timestamp: 'Hệ thống DemoTech',
+  text: 'Chào bạn, mình là Trợ lý Shop của ThueDo.net. Mình hỗ trợ tư vấn giải pháp quản lý cửa hàng cho thuê trang phục (áo dài, váy cưới, đồ biểu diễn, dạ hội), quy trình thuê - cọc - trả, in mẫu hợp đồng QR và dùng thử miễn phí 15 ngày.\n\n**Shop mình hiện có mấy chi nhánh và đang kinh doanh dòng trang phục nào (như áo dài, váy cưới hay đồ biểu diễn) để mình tư vấn gói phù hợp nhất cho bạn ạ?**',
+  timestamp: 'Hệ thống ThueDo.net',
   tool_calls: [],
 };
 
@@ -30,10 +30,10 @@ export default function Home() {
 
   useEffect(() => {
     // Generate or retrieve persistent user session ID
-    let storedId = sessionStorage.getItem('demotech_user_id');
+    let storedId = sessionStorage.getItem('thuedo_user_id');
     if (!storedId) {
       storedId = 'web_user_' + Math.random().toString(36).substring(2, 9);
-      sessionStorage.setItem('demotech_user_id', storedId);
+      sessionStorage.setItem('thuedo_user_id', storedId);
     }
     setUserId(storedId);
   }, []);
@@ -76,14 +76,14 @@ export default function Home() {
 
   const handleResetChat = () => {
     const newId = 'web_user_' + Math.random().toString(36).substring(2, 9);
-    sessionStorage.setItem('demotech_user_id', newId);
+    sessionStorage.setItem('thuedo_user_id', newId);
     setUserId(newId);
     setMessages([
       {
         id: `reset-${Date.now()}`,
         sender: 'agent',
-        text: 'Phiên hội thoại mới đã được thiết lập. Bạn cần tư vấn dòng laptop nào hay mức ngân sách bao nhiêu ạ?',
-        timestamp: 'Hệ thống DemoTech',
+        text: 'Phiên hội thoại mới đã được thiết lập. Shop mình hiện có mấy chi nhánh và đang kinh doanh dòng trang phục nào (như áo dài, váy cưới hay đồ biểu diễn) để mình tư vấn gói phù hợp nhất ạ?',
+        timestamp: 'Hệ thống ThueDo.net',
         tool_calls: [],
       },
     ]);

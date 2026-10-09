@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DemoTech Sales Copilot",
-  description: "AI Sales Copilot Dashboard & Simulator - Linear & Intercom style",
+  title: "ThueDo.net Sales Copilot - Quản lý cho thuê trang phục",
+  description: "AI Sales Copilot Dashboard & Simulator - Phần mềm quản lý cho thuê trang phục ThueDo.net",
 };
 
 export default function RootLayout({

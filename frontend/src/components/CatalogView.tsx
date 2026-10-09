@@ -73,12 +73,13 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.cpu.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.summary.toLowerCase().includes(searchTerm.toLowerCase());
+      (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.sku || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.cpu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.summary || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.brand || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesBrand = selectedBrand === 'all' || p.brand.toLowerCase() === selectedBrand.toLowerCase();
+    const matchesBrand = selectedBrand === 'all' || (p.brand || '').toLowerCase() === selectedBrand.toLowerCase();
     return matchesSearch && matchesBrand;
   });
 
@@ -94,10 +95,10 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-slate-900 leading-tight">
-              Danh mục Laptop DemoTech
+              Danh mục Gói cước & Thiết bị ThueDo.net
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              15 mẫu laptop cấu hình thật, dữ liệu tồn kho thời gian thực
+              3 gói phần mềm SaaS & 4 thiết bị chuyên dụng cho shop thuê trang phục
             </p>
           </div>
 
@@ -109,12 +110,12 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Còn hàng:</span>
+              <span>Sẵn sàng:</span>
               <strong className="font-mono">{inStockCount}</strong>
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
               <XCircle className="w-3.5 h-3.5 text-rose-600" />
-              <span>Hết hàng:</span>
+              <span>Tạm hết:</span>
               <strong className="font-mono">{products.length - inStockCount}</strong>
             </span>
             <button
@@ -136,7 +137,7 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Lọc theo tên máy, mã SKU, CPU, RAM (ví dụ: Forge Code, LAP-002, 32GB)..."
+              placeholder="Lọc theo tên gói/thiết bị, mã SKU, tính năng (ví dụ: Starter, Pro, Máy in, PKG-PRO)..."
               className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-slate-900 placeholder:text-slate-400"
             />
           </div>
@@ -154,7 +155,7 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                {brand === 'all' ? 'Tất cả hãng' : brand}
+                {brand === 'all' ? 'Tất cả phân loại' : brand}
               </button>
             ))}
           </div>
@@ -165,11 +166,11 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
       <div className="p-6">
         {isLoading && products.length === 0 ? (
           <div className="text-center py-16 text-slate-400 text-xs">
-            Đang tải dữ liệu danh mục laptop...
+            Đang tải dữ liệu danh mục ThueDo.net...
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-16 text-slate-400 text-xs">
-            Không tìm thấy mẫu laptop nào khớp với từ khóa lọc.
+            Không tìm thấy gói hoặc thiết bị nào khớp với từ khóa lọc.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -203,7 +204,11 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                        <span>{isAvailable ? `Còn ${inv.quantity} máy` : 'Hết hàng'}</span>
+                        <span>
+                          {isAvailable 
+                            ? (p.sku.startsWith('PKG-') ? 'Kích hoạt ngay' : `Còn ${inv.quantity} máy/cuộn`) 
+                            : 'Tạm hết'}
+                        </span>
                       </span>
                     </div>
 
@@ -227,40 +232,40 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
                       <div className="space-y-0.5">
                         <div className="text-slate-400 flex items-center gap-1">
                           <Cpu className="w-3 h-3 text-slate-400" />
-                          <span>CPU</span>
+                          <span>Quy mô</span>
                         </div>
-                        <div className="font-medium text-slate-700 truncate" title={p.cpu}>
-                          {p.cpu}
+                        <div className="font-medium text-slate-700 truncate" title={p.cpu || p.target_use}>
+                          {p.cpu || p.target_use || 'Tiêu chuẩn'}
                         </div>
                       </div>
 
                       <div className="space-y-0.5">
                         <div className="text-slate-400 flex items-center gap-1">
                           <HardDrive className="w-3 h-3 text-slate-400" />
-                          <span>RAM / SSD</span>
+                          <span>Tài khoản / Thử</span>
                         </div>
-                        <div className="font-medium text-slate-700">
-                          {p.ram_gb}GB / {p.storage_gb}GB
+                        <div className="font-medium text-slate-700 truncate">
+                          {p.ram_gb && p.ram_gb > 0 ? `${p.ram_gb} tài khoản` : 'Dùng thử 15 ngày'}
                         </div>
                       </div>
 
                       <div className="space-y-0.5">
                         <div className="text-slate-400 flex items-center gap-1">
                           <Monitor className="w-3 h-3 text-slate-400" />
-                          <span>Màn hình</span>
+                          <span>Tính năng / QR</span>
                         </div>
                         <div className="font-medium text-slate-700 truncate" title={p.screen}>
-                          {p.screen}
+                          {p.screen || 'Cloud / Web'}
                         </div>
                       </div>
 
                       <div className="space-y-0.5">
                         <div className="text-slate-400 flex items-center gap-1">
                           <Weight className="w-3 h-3 text-slate-400" />
-                          <span>Trọng lượng</span>
+                          <span>Nền tảng</span>
                         </div>
-                        <div className="font-medium text-slate-700">
-                          {p.weight_kg} kg
+                        <div className="font-medium text-slate-700 truncate">
+                          {p.os || (p.weight_kg ? `${p.weight_kg} kg` : 'Cloud Web/App')}
                         </div>
                       </div>
                     </div>
@@ -270,11 +275,11 @@ export function CatalogView({ onAskAboutProduct }: CatalogViewProps) {
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                     <button
                       type="button"
-                      onClick={() => onAskAboutProduct(`Tư vấn giúp mình mẫu ${p.name} (${p.sku}) với`)}
+                      onClick={() => onAskAboutProduct(`Tư vấn giúp mình ${p.name} (${p.sku}) với`)}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium transition-colors"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Hỏi Bot mẫu này</span>
+                      <span>Hỏi tư vấn mục này</span>
                     </button>
 
                     <button

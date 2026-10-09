@@ -1,33 +1,29 @@
-# DemoTech Sales Copilot Context
+# ThueDo.net Sales Copilot Context
 
-Hệ thống AI Sales Agent đa kênh hỗ trợ tư vấn thiết bị công nghệ, tra cứu catalog/tồn kho có kiểm soát, thu thập lead bán hàng có đồng thuận và chuyển tiếp nhân viên bán hàng khi vượt thẩm quyền.
+Hệ thống AI Sales Agent đa kênh hỗ trợ tư vấn giải pháp phần mềm quản lý cho thuê trang phục ThueDo.net (thuộc Digital Innovation - Dion), tra cứu gói cước, tính toán chi phí chu kỳ, so sánh tính năng nghiệp vụ thuê – cọc – trả, tiếp nhận đăng ký dùng thử miễn phí 15 ngày và chuyển tiếp chuyên viên kỹ thuật khi cần.
 
-## Language
+## Domain Language
 
-**Product**:
-Một thiết bị công nghệ (laptop hoặc phụ kiện) cụ thể có mã định danh, thông số kỹ thuật và giá niêm yết trong hệ thống.
-_Avoid_: Item, hàng hóa, thiết bị chung
+**Package (Gói phần mềm)**:
+Một gói cước phần mềm SaaS có mã SKU, cấu hình giới hạn (chi nhánh, kho, tài khoản nhân viên), danh mục tính năng và giá niêm yết theo tháng.
+_Avoid_: Sản phẩm bán lẻ, thiết bị phần cứng, máy móc
 
 **SKU**:
-Mã định danh duy nhất (Stock Keeping Unit) cho từng cấu hình sản phẩm cụ thể trong catalog (ví dụ: `LAP-001`).
+Mã định danh duy nhất cho từng gói giải pháp trong hệ thống (ví dụ: `PKG-STARTER`, `PKG-PRO`, `PKG-PREMIUM`).
 _Avoid_: Mã hàng, serial number, barcode
 
-**Inventory**:
-Dữ liệu trạng thái tồn kho thời gian thực của một SKU bao gồm số lượng khả dụng và thời điểm cập nhật.
-_Avoid_: Stockpile, kho hàng, số lượng dự kiến
+**Rental Lifecycle (Vòng đời thuê)**:
+Nghiệp vụ cốt lõi quản lý xuyên suốt: Nhận đơn -> Ghi nhận cọc -> Theo dõi đồ (đang thuê/đã trả/cần giặt ủi/cần sửa chữa/trễ hạn) -> Trả đồ và hoàn cọc.
 
 **Qualification**:
-Quá trình agent hỏi 1–3 câu ngắn gọn để làm rõ ngân sách, mục đích sử dụng và các tiêu chí ưu tiên của khách trước khi lọc danh mục.
-_Avoid_: Khảo sát, phỏng vấn, thẩm vấn
+Quá trình agent hỏi ngắn gọn kết hợp 2 tiêu chí: quy mô chi nhánh/nhân sự và dòng trang phục kinh doanh (áo dài, váy cưới, đồ biểu diễn, dạ hội) trước khi gợi ý gói giải pháp tối ưu.
+_Avoid_: Khảo sát, phỏng vấn, tra khảo
+
+**Free Trial (Dùng thử miễn phí)**:
+Chương trình cấp tài khoản trải nghiệm thực tế toàn bộ tính năng trên Web và Mobile App (iOS/Android) trong vòng 15 ngày miễn phí.
 
 **Lead**:
-Hồ sơ nhu cầu khách hàng có cấu trúc bao gồm kênh liên hệ, thông tin liên lạc tối thiểu, sản phẩm quan tâm và sự đồng ý cho phép liên hệ.
-_Avoid_: Prospect, contact, khách tiềm năng chưa xác nhận
-
-**Consent**:
-Sự đồng thuận rõ ràng, chủ động từ phía khách hàng cho phép cửa hàng lưu số điện thoại và nhân viên liên hệ tư vấn.
-_Avoid_: Opt-in ngầm, mặc định cho phép
+Hồ sơ nhu cầu khách hàng có cấu trúc bao gồm Tên chủ shop, Số điện thoại, Tên cửa hàng, Loại hình trang phục, Số lượng chi nhánh và kênh liên hệ mong muốn.
 
 **Handoff Ticket**:
-Bản ghi chuyển giao cuộc hội thoại sang nhân viên bán hàng kèm phân loại lý do, mức độ ưu tiên và bản tóm tắt ngắn gọn toàn bộ ngữ cảnh.
-_Avoid_: Escalation đơn thuần, complaint ticket, transfer call
+Bản ghi chuyển giao cuộc hội thoại sang nhân viên phụ trách với phân loại lý do rõ ràng: `discount_pending` (xin giảm giá), `migration` (chuyển dữ liệu cũ từ KiotViet/Sapo/Excel), `hardware_setup` (kết nối máy in/mã vạch), `live_demo` (hẹn demo 1-1 qua Meet/UltraViewer), hoặc `complaint`.

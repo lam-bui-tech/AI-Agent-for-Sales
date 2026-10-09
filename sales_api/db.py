@@ -30,9 +30,17 @@ def init_db():
         preferred_contact_method TEXT,
         consent_to_contact BOOLEAN NOT NULL DEFAULT 1,
         status TEXT NOT NULL DEFAULT 'new',
+        shop_name TEXT,
+        fashion_type TEXT,
+        branches_count INTEGER DEFAULT 1,
         created_at TEXT NOT NULL
     );
     """)
+    for col_def in ["shop_name TEXT", "fashion_type TEXT", "branches_count INTEGER DEFAULT 1"]:
+        try:
+            cursor.execute(f"ALTER TABLE leads ADD COLUMN {col_def}")
+        except Exception:
+            pass
     
     # 2. Handoff Tickets Table
     cursor.execute("""

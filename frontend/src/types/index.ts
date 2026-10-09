@@ -23,16 +23,22 @@ export interface Product {
   name: string;
   brand: string;
   price_vnd: number;
-  cpu: string;
-  ram_gb: number;
-  storage_gb: number;
-  screen: string;
-  weight_kg: number;
-  os: string;
-  target_use: string;
+  cpu?: string;
+  ram_gb?: number;
+  storage_gb?: number;
+  screen?: string;
+  weight_kg?: number;
+  os?: string;
+  target_use?: string;
   summary: string;
   ports?: string[];
   battery_hours?: number;
+  category?: string;
+  tier?: string;
+  max_branches?: number;
+  max_accounts?: number;
+  features?: string[];
+  pricing_cycles?: Record<string, number>;
 }
 
 export interface InventoryItem {

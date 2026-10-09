@@ -14,7 +14,7 @@ def test_handoff_without_conversation_id_repro():
     """
     payload = {
         "reason": "warranty_check",
-        "summary": "Khách Huynh Nguyễn (SĐT: 0342395067) muốn tra cứu bảo hành cho laptop đã mua trước đó. Cần nhân viên kiểm tra lịch sử đơn hàng và trạng thái bảo hành.",
+        "summary": "Khách Huynh Nguyễn (SĐT: 0342395067) muốn tra cứu bảo hành máy in hợp đồng QR đã mua. Cần nhân viên kiểm tra lịch sử thiết bị.",
         "channel": "zalouser",
         "contact": "0342395067"
     }
