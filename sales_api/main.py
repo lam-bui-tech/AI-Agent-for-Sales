@@ -472,6 +472,21 @@ def get_messenger_webhook_status():
         "callback_endpoint": "/api/webhooks/messenger"
     }
 
+@app.get("/api/facebook/info", summary="Thông tin Fanpage Facebook & Kênh Messenger")
+def get_facebook_info():
+    token = get_messenger_token()
+    return {
+        "status": "connected" if bool(token) else "missing_token",
+        "page_id": get_env_var("FB_PAGE_ID", "722678104269437"),
+        "page_name": "Thuê Đồ - Phần mềm quản lý cho thuê trang phục ThueDo.net",
+        "page_url": "https://www.facebook.com/thuedo.net/",
+        "messenger_url": "https://m.me/thuedo.net",
+        "handle": "@thuedo.net",
+        "app_id": "2060347434718011",
+        "has_page_access_token": bool(token),
+        "webhook_endpoint": "/api/webhooks/messenger"
+    }
+
 @app.get("/api/webhooks/messenger", summary="Messenger Webhook Verification")
 def verify_messenger_webhook(request: Request):
     mode = request.query_params.get("hub.mode")

@@ -92,3 +92,20 @@ export async function getZaloStatus(): Promise<any> {
   if (!res.ok) throw new Error('Failed to fetch Zalo status');
   return res.json();
 }
+
+export async function getFacebookInfo(): Promise<{
+  status: string;
+  page_id: string;
+  page_name: string;
+  page_url: string;
+  messenger_url: string;
+  handle: string;
+  app_id: string;
+  has_page_access_token: boolean;
+  webhook_endpoint: string;
+}> {
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/facebook/info`);
+  if (!res.ok) throw new Error('Failed to fetch Facebook info');
+  return res.json();
+}
