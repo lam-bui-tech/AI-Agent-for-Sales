@@ -83,7 +83,11 @@ def test_call_dion_chat_completions_mock_success():
         assert args[0] == "https://ai.dion.vn/api/v1/chat/completions"
         assert kwargs["json"]["model"] == "balanced"
         assert "Authorization" in kwargs["headers"]
-        assert kwargs["headers"]["Authorization"].startswith("Bearer af_")
+        api_key = get_dion_api_key()
+        if api_key:
+            assert kwargs["headers"]["Authorization"] == f"Bearer {api_key}"
+        else:
+            assert kwargs["headers"]["Authorization"].startswith("Bearer")
 
 def test_call_dion_chat_completions_mock_failure():
     """Kiểm tra xử lý lỗi khi API trả về 500 hoặc mất kết nối mạng"""

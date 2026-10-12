@@ -73,13 +73,13 @@ def get_telegram_bot_info() -> Dict[str, Any]:
 
 def send_telegram_alert(message: str, chat_id: Optional[str] = None) -> bool:
     """
-    Gửi thông báo thời gian thực về Telegram của quản lý Sales (@lam_1342).
+    Gửi thông báo thời gian thực về Telegram của quản lý Sales.
     Hỗ trợ cả Chat ID số lẫn username qua OpenClaw CLI.
     """
     token = get_env_var("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
-    target = chat_id or get_env_var("TELEGRAM_SALES_CHAT_ID", TELEGRAM_SALES_CHAT_ID) or "@lam_1342"
+    target = chat_id or get_env_var("TELEGRAM_SALES_CHAT_ID", TELEGRAM_SALES_CHAT_ID)
     
-    if not target:
+    if not target or not token:
         return False
 
     # Cách 1: Nếu target là ID số (hoặc nhóm âm -100...) -> dùng Bot API trực tiếp

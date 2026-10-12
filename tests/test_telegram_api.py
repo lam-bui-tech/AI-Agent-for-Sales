@@ -75,6 +75,7 @@ def test_send_telegram_alert_mock():
     mock_resp.status = 200
     mock_resp.__enter__.return_value = mock_resp
 
-    with patch("urllib.request.urlopen", return_value=mock_resp):
-        success = send_telegram_alert("Thông báo thử nghiệm đơn hàng mới")
+    with patch("urllib.request.urlopen", return_value=mock_resp), \
+         patch("notifications.get_env_var", side_effect=lambda k, d="": "dummy_token" if "TOKEN" in k else "12345678"):
+        success = send_telegram_alert("Thông báo thử nghiệm đơn hàng mới", chat_id="12345678")
         assert success is True

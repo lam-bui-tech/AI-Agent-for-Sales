@@ -403,7 +403,7 @@ def get_env_var(key: str, default: str = "") -> str:
     return os.getenv(key, default)
 
 def get_messenger_verify_token() -> str:
-    return get_env_var("MESSENGER_VERIFY_TOKEN", "thuedo_webhook_2026")
+    return get_env_var("MESSENGER_VERIFY_TOKEN", "")
 
 def get_messenger_token() -> str:
     return get_env_var("MESSENGER_PAGE_ACCESS_TOKEN", "")
@@ -412,14 +412,13 @@ def get_messenger_token() -> str:
 def get_messenger_webhook_status():
     verify_token = get_messenger_verify_token()
     token = get_messenger_token()
-    page_id = get_env_var("FB_PAGE_ID", "722678104269437")
+    page_id = get_env_var("FB_PAGE_ID", "")
     return {
         "status": "ready" if (verify_token and token) else "missing_token",
         "page_id": page_id,
         "page_name": "Thuê Đồ - Phần mềm quản lý cho thuê trang phục ThueDo.net",
-        "verify_token": verify_token,
+        "has_verify_token": bool(verify_token),
         "has_page_access_token": bool(token),
-        "token_prefix": token[:15] + "..." if token else None,
         "callback_endpoint": "/api/webhooks/messenger"
     }
 
@@ -428,12 +427,12 @@ def get_facebook_info():
     token = get_messenger_token()
     return {
         "status": "connected" if bool(token) else "missing_token",
-        "page_id": get_env_var("FB_PAGE_ID", "722678104269437"),
+        "page_id": get_env_var("FB_PAGE_ID", ""),
         "page_name": "Thuê Đồ - Phần mềm quản lý cho thuê trang phục ThueDo.net",
         "page_url": "https://www.facebook.com/thuedo.net/",
         "messenger_url": "https://m.me/thuedo.net",
         "handle": "@thuedo.net",
-        "app_id": "2060347434718011",
+        "app_id": get_env_var("FB_APP_ID", ""),
         "has_page_access_token": bool(token),
         "webhook_endpoint": "/api/webhooks/messenger"
     }
@@ -468,11 +467,11 @@ def verify_messenger_webhook(request: Request):
     challenge = request.query_params.get("hub.challenge")
     expected_token = get_messenger_verify_token()
 
-    if mode == "subscribe" and (token == expected_token or token == "demotech_verify_token_123"):
+    if mode == "subscribe" and expected_token and token == expected_token:
         from fastapi.responses import PlainTextResponse
-        print(f"[Messenger Webhook] Verified successfully with challenge: {challenge}", flush=True)
+        print("[Messenger Webhook] Verified successfully!", flush=True)
         return PlainTextResponse(challenge)
-    print(f"[Messenger Webhook] Verification failed! Received: {token}, Expected: {expected_token}", flush=True)
+    print(f"[Messenger Webhook] Verification failed! Invalid token received", flush=True)
     raise HTTPException(status_code=403, detail="Invalid verification token")
 
 # Bộ nhớ đệm lưu các message ID đã xử lý để tránh trả lời lặp lại
