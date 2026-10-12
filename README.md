@@ -163,7 +163,7 @@ TELEGRAM_SALES_CHAT_ID=your_chat_id
 SALES_API_URL=http://localhost:8000
 
 # Facebook Messenger Configuration
-MESSENGER_VERIFY_TOKEN=demotech_verify_token_123
+MESSENGER_VERIFY_TOKEN=your_messenger_verify_token_here
 MESSENGER_PAGE_ACCESS_TOKEN=your_facebook_page_access_token_here
 ```
 
@@ -219,7 +219,7 @@ OpenClaw giao tiếp với các công cụ bán hàng thông qua chuẩn giao th
   2. Liên kết Fanpage và tạo **Page Access Token** -> Dán vào `MESSENGER_PAGE_ACCESS_TOKEN` trong `.env`.
   3. Trong phần Webhooks, nhấn **Add Callback URL**:
      - **URL gọi lại**: `https://<ten-mien-hoac-ip-server>/api/webhooks/messenger`
-     - **Mã xác minh (Verify Token)**: Điền giá trị `MESSENGER_VERIFY_TOKEN` (mặc định: `demotech_verify_token_123`).
+     - **Mã xác minh (Verify Token)**: Điền giá trị `MESSENGER_VERIFY_TOKEN` khớp với `.env` của bạn.
   4. Đăng ký nhận sự kiện (Subscribe): Chọn `messages` và `messaging_postbacks`.
   5. Khi khách nhắn tin vào Fanpage, hệ thống sẽ tiếp nhận, đưa qua OpenClaw Agent và tự động trả lời qua Facebook Graph API.
 
