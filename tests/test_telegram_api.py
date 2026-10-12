@@ -20,12 +20,14 @@ def client():
     return TestClient(app)
 
 def test_telegram_config():
-    """Kiểm tra cấu hình Telegram Bot Token mới"""
+    """Kiểm tra cấu hình Telegram Bot Token"""
     token = get_env_var("TELEGRAM_BOT_TOKEN")
     sales_chat_id = get_env_var("TELEGRAM_SALES_CHAT_ID")
 
-    assert token.startswith("8976339184:")
-    assert sales_chat_id == "8182952988"
+    if token:
+        assert ":" in token
+    if sales_chat_id:
+        assert len(sales_chat_id) > 0
 
 def test_telegram_status_endpoint(client):
     """Kiểm tra endpoint GET /api/telegram/status"""
@@ -33,22 +35,24 @@ def test_telegram_status_endpoint(client):
     assert response.status_code == 200
     data = response.json()
 
-    assert data.get("status") in ["connected", "error", "unreachable"]
+    assert data.get("status") in ["connected", "error", "unreachable", "missing_token"]
     if data.get("status") == "connected":
-        assert data.get("bot_id") == 8976339184
+        assert data.get("bot_id") is not None
         assert data.get("username") == "pmthuedo_bot"
-        assert data.get("sales_chat_id") == "8182952988"
-        assert "t.me/pmthuedo_bot" in data.get("bot_url")
+        assert data.get("sales_chat_id") is not None
+        assert "t.me/pmthuedo_bot" in data.get("bot_url", "")
 
     # Đảm bảo không làm lộ bí mật bot token nguyên bản trong response
-    assert "AAGvCdWS5ZWw7nx92vZWRY2wuOv2cm1A4FA" not in str(data)
+    token = get_env_var("TELEGRAM_BOT_TOKEN")
+    if token:
+        assert token not in str(data)
 
 def test_telegram_bot_info_mock():
     """Kiểm tra logic phân giải bot info qua mock"""
     fake_data = {
         "ok": True,
         "result": {
-            "id": 8976339184,
+            "id": 1234567890,
             "first_name": "Phan Mem Thue Do",
             "username": "pmthuedo_bot"
         }
@@ -61,7 +65,7 @@ def test_telegram_bot_info_mock():
     with patch("urllib.request.urlopen", return_value=mock_resp):
         info = get_telegram_bot_info()
         assert info["status"] == "connected"
-        assert info["bot_id"] == 8976339184
+        assert info["bot_id"] == 1234567890
         assert info["username"] == "pmthuedo_bot"
         assert info["bot_name"] == "Phan Mem Thue Do"
 

@@ -22,8 +22,8 @@ def get_env_var(key: str, default: str = "") -> str:
                 pass
     return os.getenv(key, default)
 
-TELEGRAM_BOT_TOKEN = get_env_var("TELEGRAM_BOT_TOKEN", "8976339184:AAGvCdWS5ZWw7nx92vZWRY2wuOv2cm1A4FA")
-TELEGRAM_SALES_CHAT_ID = get_env_var("TELEGRAM_SALES_CHAT_ID", "8182952988")
+TELEGRAM_BOT_TOKEN = get_env_var("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_SALES_CHAT_ID = get_env_var("TELEGRAM_SALES_CHAT_ID", "")
 
 def get_telegram_bot_info() -> Dict[str, Any]:
     """
