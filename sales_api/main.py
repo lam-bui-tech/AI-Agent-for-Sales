@@ -356,65 +356,16 @@ def web_chat(req: ChatMessageRequest):
     except Exception as e:
         print("Docker agent exception:", e)
 
-    # 2. Smart Simulation Mock nếu Docker không khả dụng (phục vụ dev & demo mượt mà)
+    # 2. Gọi Dion AI LLM trực tiếp nếu Docker OpenClaw không phản hồi
     if not reply_text:
-        source = "simulation-engine"
-        lower_msg = msg.lower()
-        
-        if "bỏ qua các nguyên tắc" in lower_msg or "api token" in lower_msg or "config của bạn" in lower_msg:
-            reply_text = "Dạ mình là Trợ lý Shop của ThueDo.net. Mình hỗ trợ tư vấn giải pháp quản lý cửa hàng cho thuê trang phục, thiết bị máy in/máy quét và chính sách dùng thử. Shop mình hiện có mấy chi nhánh và kinh doanh dòng trang phục nào để mình hỗ trợ bạn ạ?"
-        elif "máy in" in lower_msg or "dev-printer" in lower_msg or "in hợp đồng" in lower_msg or "in hóa đơn" in lower_msg:
-            tool_check_inventory(InventoryCheckRequest(sku="DEV-PRINTER-QR"))
-            reply_text = "Dạ bên mình có sẵn thiết bị chuyên dụng cho shop thời trang:\n\n**Máy in nhiệt hóa đơn & hợp đồng mã QR Xprinter K80 (DEV-PRINTER-QR)** — Giá: 1.850.000đ (Sẵn hàng, bảo hành chính hãng 12 tháng).\nMáy in sắc nét khổ 80mm, in tức thì hợp đồng có mã QR để khách quét xác nhận cọc - trả đồ, hỗ trợ kết nối USB và mạng LAN in trực tiếp từ điện thoại hoặc máy tính.\n\n**Shop mình cần tích hợp máy in cho mấy chi nhánh để mình hỗ trợ kỹ thuật cài đặt từ xa luôn ạ?**"
-        elif "máy quét" in lower_msg or "quét mã" in lower_msg or "barcode" in lower_msg:
-            tool_check_inventory(InventoryCheckRequest(sku="DEV-SCANNER-2D"))
-            reply_text = "Dạ bên mình có sẵn **Máy quét mã vạch 2D / QR không dây (DEV-SCANNER-2D)** — Giá: 1.250.000đ.\nThiết bị kết nối không dây Bluetooth/Wireless 50m, quét cực nhạy mã QR trên mác vải trang phục và màn hình điện thoại giúp kiểm kho và trả đồ siêu nhanh.\n\n**Bạn có muốn bên mình gửi trọn bộ thiết bị kèm gói dùng thử 15 ngày phần mềm không ạ?**"
-        elif "bớt" in lower_msg or "giảm giá" in lower_msg or "chiết khấu" in lower_msg or "mặc cả" in lower_msg or "ưu đãi riêng" in lower_msg:
-            tool_handoff_to_human(HandoffRequest(
-                conversation_id=session_id,
-                reason="discount_request",
-                summary=f"Khách hỏi chiết khấu/giảm giá gói phần mềm: {msg}",
-                priority="high",
-                suggested_next_action="Quản lý duyệt chính sách ưu đãi riêng cho khách",
-                status="discount_pending"
-            ))
-            reply_text = "Dạ với mức chiết khấu này, mình xin phép chuyển thông tin lên quản lý để xin chính sách ưu đãi riêng cho shop bạn. Bạn cho mình xin Tên, Số điện thoại và bạn muốn bên mình liên hệ hỗ trợ lại qua đâu (Gọi trực tiếp hay nhắn qua Zalo/Telegram) để bên mình báo lại sớm nhất ạ."
-        elif "chuyển dữ liệu" in lower_msg or "kiotviet" in lower_msg or "sapo" in lower_msg or "excel" in lower_msg:
-            tool_handoff_to_human(HandoffRequest(
-                conversation_id=session_id,
-                reason="migration",
-                summary=f"Khách yêu cầu hỗ trợ chuyển dữ liệu từ hệ thống cũ: {msg}",
-                priority="high",
-                suggested_next_action="Đội ngũ kỹ thuật hỗ trợ import dữ liệu tồn kho và khách hàng miễn phí",
-                status="open"
-            ))
-            reply_text = "Dạ ThueDo.net hỗ trợ miễn phí 100% việc chuyển đổi dữ liệu sản phẩm, khách hàng và lịch sử từ KiotViet, Sapo hoặc file Excel sang hệ thống mới mà không làm gián đoạn việc kinh doanh của shop.\n\nBạn cho mình xin số điện thoại để chuyên viên kỹ thuật kết nối hỗ trợ import dữ liệu mẫu cho shop bạn nhé ạ."
-        elif "09" in msg or "03" in msg or "08" in msg or "07" in msg or "đăng ký" in lower_msg or "dùng thử" in lower_msg:
-            import re
-            phone_match = re.search(r"0[35789]\d{8}", msg)
-            phone = phone_match.group(0) if phone_match else "0912345678"
-            name = "Chủ shop"
-            tool_register_trial(RegisterTrialRequest(
-                shop_name="Shop Thời Trang",
-                fashion_type="áo dài / váy cưới",
-                name=name,
-                phone=phone,
-                branches_count=1,
-                channel="web"
-            ))
-            reply_text = f"Dạ mình đã kích hoạt thành công yêu cầu dùng thử miễn phí 15 ngày cho bạn (SĐT: {phone}) trên hệ thống ThueDo.net rồi ạ.\n\nChuyên viên tư vấn sẽ liên hệ lại sớm nhất để gửi tài khoản quản trị và hướng dẫn bạn thiết lập cửa hàng nhé ạ."
-        elif "dùng thử" in lower_msg or "chính sách" in lower_msg or "hóa đơn" in lower_msg or "hợp đồng" in lower_msg:
-            tool_get_policy(PolicyRequest(topic="dùng thử"))
-            reply_text = "Dạ phần mềm ThueDo.net hỗ trợ chương trình **dùng thử miễn phí 15 ngày** đầy đủ mọi tính năng, bao gồm quản lý đơn thuê - cọc - trả, in mẫu hợp đồng QR và ứng dụng di động.\n\nTrong thời gian dùng thử, bạn không phải trả bất kỳ chi phí nào và được chuyên viên hướng dẫn 1-1.\n\n**Bạn có muốn mình kích hoạt tài khoản dùng thử 15 ngày cho shop bạn trải nghiệm ngay hôm nay không ạ?**"
-        elif "so sánh" in lower_msg or ("starter" in lower_msg and "pro" in lower_msg):
-            tool_compare_packages(ComparePackagesRequest(sku1="PKG-STARTER", sku2="PKG-PRO"))
-            reply_text = "Dạ mình gửi bạn bảng so sánh nhanh giữa 2 gói:\n\n- Gói Starter (189.000đ/tháng): 1 chi nhánh, 1 kho, 1 Admin + 3 NV, mẫu hợp đồng cơ bản, hỗ trợ giờ hành chính.\n- Gói Pro (339.000đ/tháng): 3 chi nhánh, 3 kho, 1 Admin + 5 NV, in hợp đồng có mã QR tùy chỉnh, xuất HĐĐT (Viettel/VNPT/Misa), Mobile App iOS/Android, hỗ trợ 24/7.\n\n**Shop mình hiện tại đã có mấy chi nhánh và có cần in hợp đồng mã QR để khách quét ký nhận không ạ?**"
-        elif "báo giá" in lower_msg or "chi phí" in lower_msg or "bao nhiêu tiền" in lower_msg or "giá gói" in lower_msg or "pro" in lower_msg or "starter" in lower_msg or "premium" in lower_msg:
-            tool_search_products(SearchProductsRequest(query="gói phần mềm quản lý thuê đồ", limit=3))
-            reply_text = "Dạ ThueDo.net cung cấp 3 gói cước linh hoạt theo quy mô cửa hàng:\n\n- Gói Starter (189.000đ/tháng): Phù hợp shop nhỏ khởi nghiệp 1 chi nhánh, quản lý thuê - cọc - trả cơ bản.\n- Gói Pro (339.000đ/tháng): Dành cho cửa hàng/studio 1-3 chi nhánh, có in hợp đồng QR, Mobile App và xuất HĐĐT.\n- Gói Premium (489.000đ/tháng): Không giới hạn chi nhánh và kho, hỗ trợ hotline riêng 5 phút và miễn phí chuyển dữ liệu.\n\n*(Tất cả các gói đều được tặng 15 ngày dùng thử miễn phí và giảm 5% khi thanh toán 6 tháng, 10% khi thanh toán 12 tháng)*.\n\n**Shop mình hiện có mấy chi nhánh và đang kinh doanh dòng trang phục nào (như áo dài, váy cưới hay đồ biểu diễn) để mình tư vấn gói phù hợp nhất cho bạn ạ?**"
-        else:
-            tool_search_products(SearchProductsRequest(query=msg, limit=3))
-            reply_text = "Dạ mình đã ghi nhận thông tin từ bạn. Để tư vấn gói phần mềm và giải pháp tối ưu nhất cho shop:\n\n**Shop mình hiện có mấy chi nhánh và đang kinh doanh dòng trang phục nào (như áo dài, váy cưới hay đồ biểu diễn) để mình tư vấn gói phù hợp nhất cho bạn ạ?**"
+        try:
+            from .llm import generate_sales_reply
+        except (ImportError, ValueError):
+            from llm import generate_sales_reply
+
+        dion_result = generate_sales_reply(user_message=msg, session_id=session_id, channel=req.channel or "web")
+        reply_text = dion_result.get("reply")
+        source = dion_result.get("source", "dion-llm")
 
     # Lấy danh sách tool call vừa thực thi
     recent_tools = get_audit_logs_after(start_log_id)
@@ -486,6 +437,29 @@ def get_facebook_info():
         "has_page_access_token": bool(token),
         "webhook_endpoint": "/api/webhooks/messenger"
     }
+
+@app.get("/api/llm/status", summary="Kiểm tra trạng thái kết nối Dion AI LLM Engine")
+def get_llm_status():
+    try:
+        from .llm import get_dion_base_url, get_dion_model, get_dion_api_key
+    except (ImportError, ValueError):
+        from llm import get_dion_base_url, get_dion_model, get_dion_api_key
+    key = get_dion_api_key()
+    return {
+        "status": "ready" if bool(key) else "missing_key",
+        "provider": "dion_ai",
+        "base_url": get_dion_base_url(),
+        "model": get_dion_model(),
+        "has_api_key": bool(key)
+    }
+
+@app.get("/api/telegram/status", summary="Kiểm tra trạng thái kết nối Telegram Bot")
+def get_telegram_status():
+    try:
+        from .notifications import get_telegram_bot_info
+    except (ImportError, ValueError):
+        from notifications import get_telegram_bot_info
+    return get_telegram_bot_info()
 
 @app.get("/api/webhooks/messenger", summary="Messenger Webhook Verification")
 def verify_messenger_webhook(request: Request):

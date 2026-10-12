@@ -115,7 +115,7 @@ export function Sidebar({ currentTab, onSelectTab, onOpenZalo, onResetChat }: Si
         </a>
 
         <a
-          href="https://t.me/lamOpclw_bot"
+          href="https://t.me/pmthuedo_bot"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition-all"
@@ -124,7 +124,7 @@ export function Sidebar({ currentTab, onSelectTab, onOpenZalo, onResetChat }: Si
             <ExternalLink className="w-4 h-4 text-slate-500" />
             <span>Telegram Bot</span>
           </div>
-          <span className="text-[10px] text-blue-600 font-mono">@lamOpclw_bot</span>
+          <span className="text-[10px] text-blue-600 font-mono">@pmthuedo_bot</span>
         </a>
       </div>
 

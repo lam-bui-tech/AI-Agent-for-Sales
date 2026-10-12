@@ -17,6 +17,11 @@ services:
     environment:
       - SALES_API_URL=http://sales-api:8088
       - PYTHONUNBUFFERED=1
+      - DION_LLM_BASE_URL=https://ai.dion.vn/api/v1
+      - DION_LLM_API_KEY=af_f46a42312254c51f415247cb086262ada22bfae1d5f5e8128e5bc82f0dd1d73d
+      - DION_LLM_MODEL=balanced
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-8976339184:AAGvCdWS5ZWw7nx92vZWRY2wuOv2cm1A4FA}
+      - TELEGRAM_SALES_CHAT_ID=${TELEGRAM_SALES_CHAT_ID:-8182952988}
     networks:
       - sales-network
 
@@ -26,8 +31,18 @@ services:
       dockerfile: Dockerfile.openclaw
     container_name: openclaw-cont
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - SALES_API_URL=http://sales-api:8088
+      - DION_LLM_BASE_URL=https://ai.dion.vn/api/v1
+      - DION_LLM_API_KEY=af_f46a42312254c51f415247cb086262ada22bfae1d5f5e8128e5bc82f0dd1d73d
+      - DION_LLM_MODEL=balanced
+      - CUSTOM_BASE_URL=https://ai.dion.vn/api/v1
+      - CUSTOM_API_KEY=af_f46a42312254c51f415247cb086262ada22bfae1d5f5e8128e5bc82f0dd1d73d
+      - CUSTOM_MODEL_ID=balanced
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-8976339184:AAGvCdWS5ZWw7nx92vZWRY2wuOv2cm1A4FA}
+      - TELEGRAM_SALES_CHAT_ID=${TELEGRAM_SALES_CHAT_ID:-8182952988}
     volumes:
       - ./openclaw-config:/root/.openclaw
     networks:
